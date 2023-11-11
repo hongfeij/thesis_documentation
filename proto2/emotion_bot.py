@@ -1,6 +1,7 @@
 import sys
 import os
 import openai
+from openai import OpenAI
 from nltk.sentiment import SentimentIntensityAnalyzer
 import nltk
 import json
@@ -16,13 +17,15 @@ if OPENAI_API_KEY is None:
     raise ValueError("OpenAI API key not found. Please set the OPENAI_API_KEY environment variable.")
 SENSITIVITY = float(os.getenv('SENSITIVITY', 1.0))  # Provide a default value of 1.0 if not set
 
+client = OpenAI(api_key=OPENAI_API_KEY)
+
 class EmotionChatbot:
     def __init__(self, start_emotion_score=0.0):
         self.emotion_score = start_emotion_score
         self.last_user_input = ""
         self.last_sentiment_score = 0.0
         self.analyzer = SentimentIntensityAnalyzer()
-        openai.api_key = OPENAI_API_KEY
+        
 
     def adjust_emotion(self, sentiment_score):
         self.emotion_score += sentiment_score / SENSITIVITY
@@ -47,23 +50,26 @@ class EmotionChatbot:
 
         for attempt in range(5):
             try:
-                response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "system", "content": system_message},
-                        {"role": "system", "content": background},
-                        {"role": "user", "content": prompt}],
-                    max_tokens=50,
-                    temperature=0.5 + self.emotion_score * 0.5
-                )
-                return response['choices'][0]['message']['content'].strip()
-            except openai.error.ServiceUnavailableError:
+                response = client.chat.completions.create(model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": system_message},
+                    {"role": "system", "content": background},
+                    {"role": "user", "content": prompt}],
+                max_tokens=50,
+                temperature=0.5 + self.emotion_score * 0.5)
+                # You may need to adjust the following line according to the actual response structure
+                return response.choices[0].message.content.strip()
+            except openai.error.OpenAIError as e:  # Adjusted to a generic OpenAIError
                 wait = 2 ** attempt  # Exponential backoff formula
-                print(f"Service unavailable. Retrying in {wait} seconds...")
+                print(f"OpenAIError: {e} - Retrying in {wait} seconds...")
                 time.sleep(wait)
-
-        raise Exception("Max retry attempts reached. Service is unavailable.")
-        # print("Generating Response...")
+            except Exception as e:  # Catch-all for other exceptions
+                print(f"An error occurred: {e}")
+                wait = 2 ** attempt
+                print(f"Retrying in {wait} seconds...")
+                time.sleep(wait)
+            raise Exception("Max retry attempts reached. Service is unavailable.")
+            # print("Generating Response...")
 
     def chat(self, user_input):
         sentiment_score = self.sentiment_analysis(user_input)
