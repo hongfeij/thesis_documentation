@@ -64,5 +64,11 @@
         "emotion_score": -0.006100000000000022,
         "last_user_input": "All right all right, let it be",
         "last_sentiment_score": 0.0
+    },
+    {
+        "id": 12,
+        "emotion_score": 0.14683333333333332,
+        "last_user_input": "I'm glad I finished configuring ubuntu on raspberry Pi",
+        "last_sentiment_score": 0.4588
     }
 ]
