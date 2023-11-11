@@ -1,56 +1,68 @@
 [
     {
         "id": 1,
-        "emotion_score": 0.12398,
-        "last_user_input": "You know what? I get a new job today, do you happy for me?",
-        "last_sentiment_score": 0.6199
+        "emotion_score": 0.11333333333333334,
+        "last_user_input": "I have a long rough day, could you play some reliefing music for me?",
+        "last_sentiment_score": 0.34
     },
     {
         "id": 2,
-        "emotion_score": 0.17862,
-        "last_user_input": "Well, you are ruthless",
-        "last_sentiment_score": 0.2732
+        "emotion_score": 0.11333333333333334,
+        "last_user_input": "Hmm, maybe rock?",
+        "last_sentiment_score": 0.0
     },
     {
         "id": 3,
-        "emotion_score": 0.2405,
-        "last_user_input": "Could you stop saying like this?????????",
-        "last_sentiment_score": 0.3094
+        "emotion_score": 0.26626666666666665,
+        "last_user_input": "Werid, I didn't ask you for your own preference, I just want you to help me choose a rock music",
+        "last_sentiment_score": 0.4588
     },
     {
         "id": 4,
-        "emotion_score": 0.18586,
-        "last_user_input": "My dog died today, I'd like some company",
-        "last_sentiment_score": -0.2732
+        "emotion_score": 0.292,
+        "last_user_input": "indie rock plz",
+        "last_sentiment_score": 0.0772
     },
     {
         "id": 5,
-        "emotion_score": 0.18586,
-        "last_user_input": "While what???",
-        "last_sentiment_score": 0.0
+        "emotion_score": 0.1933333333333333,
+        "last_user_input": "no, just random ones",
+        "last_sentiment_score": -0.296
     },
     {
         "id": 6,
-        "emotion_score": 0.18586,
-        "last_user_input": "Could you say that again??",
-        "last_sentiment_score": 0.0
+        "emotion_score": 0.16456666666666664,
+        "last_user_input": "I mean choose one random rock music, perhaps the popular ones recently, I don't mean choosing from what you can do, you seems not so smart!",
+        "last_sentiment_score": -0.0863
     },
     {
         "id": 7,
-        "emotion_score": 0.18586,
-        "last_user_input": "Then what?",
-        "last_sentiment_score": 0.0
+        "emotion_score": 0.09599999999999997,
+        "last_user_input": "Hmm, I don't like this one, you didn't try hard enough",
+        "last_sentiment_score": -0.2057
     },
     {
         "id": 8,
-        "emotion_score": 0.2234,
-        "last_user_input": "Then?? Could you at least finish your sentences?",
-        "last_sentiment_score": 0.1877
+        "emotion_score": 0.009799999999999975,
+        "last_user_input": "I have you for 2 months, why you still don't understand what I like? DO YOU WANT TO BE REPLACED???",
+        "last_sentiment_score": -0.2586
     },
     {
         "id": 9,
-        "emotion_score": 0.31148,
-        "last_user_input": "Thanks Alexz",
-        "last_sentiment_score": 0.4404
+        "emotion_score": -0.07353333333333335,
+        "last_user_input": "I'm done with the apology, just rest and leave me alone.",
+        "last_sentiment_score": -0.25
+    },
+    {
+        "id": 10,
+        "emotion_score": -0.006100000000000022,
+        "last_user_input": "Why do you always be such an emotionless one? I feel no passion from your service",
+        "last_sentiment_score": 0.2023
+    },
+    {
+        "id": 11,
+        "emotion_score": -0.006100000000000022,
+        "last_user_input": "All right all right, let it be",
+        "last_sentiment_score": 0.0
     }
 ]

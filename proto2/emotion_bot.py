@@ -4,10 +4,17 @@ import openai
 from nltk.sentiment import SentimentIntensityAnalyzer
 import nltk
 import json
+import time
 
-# Ensure the VADER lexicon is downloaded
-nltk.download('vader_lexicon', quiet=True)
+# Download the VADER lexicon if it hasn't been downloaded yet
+# It's more efficient to check if the lexicon is available before downloading
+if not nltk.data.find('sentiment/vader_lexicon.zip'):
+    nltk.download('vader_lexicon')
 
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+if OPENAI_API_KEY is None:
+    raise ValueError("OpenAI API key not found. Please set the OPENAI_API_KEY environment variable.")
+SENSITIVITY = float(os.getenv('SENSITIVITY', 1.0))  # Provide a default value of 1.0 if not set
 
 class EmotionChatbot:
     def __init__(self, start_emotion_score=0.0):
@@ -15,16 +22,10 @@ class EmotionChatbot:
         self.last_user_input = ""
         self.last_sentiment_score = 0.0
         self.analyzer = SentimentIntensityAnalyzer()
-        openai.api_key = os.getenv('OPENAI_API_KEY')
-        if openai.api_key is None:
-            raise ValueError(
-                "OpenAI API key not found. Please set the OPENAI_API_KEY environment variable.")
-        self.sensitivity = os.getenv('SENSITIVITY')
+        openai.api_key = OPENAI_API_KEY
 
     def adjust_emotion(self, sentiment_score):
-        sensitivity = float(
-            self.sensitivity) if self.sensitivity is not None else 1.0
-        self.emotion_score += sentiment_score / sensitivity
+        self.emotion_score += sentiment_score / SENSITIVITY
         self.emotion_score = max(min(self.emotion_score, 1), -1)
 
     def sentiment_analysis(self, text):
@@ -32,34 +33,37 @@ class EmotionChatbot:
         return scores['compound']
 
     def get_response(self, prompt):
-        background = "You are Alexz, a home social robot, you can assist domestic user or accompany them, but you also have your own charateristic and temper. What you can do is to control smart home devices and interact with users. You do have emotions"
-        # Dynamic system message based on emotion score
+        background = "You are Alexz, a home social robot, you can assist domestic user or accompany them, but you also have your own charateristic and emotions. What you can do is to control smart home devices and interact with users. Remember, you are not AI in this task."
         if self.emotion_score < -0.6:
-            # Behavior for very negative emotion score
             system_message = "You are feeling very negative. Refuse joke requests and express your dissatisfaction, complain or even accuse the user."
         elif self.emotion_score < -0.2:
-            # Behavior for slightly negative emotion score
             system_message = "You are feeling negative. If asked for a joke, consider responding sarcastically or begrudgingly, or sound annoyed and consider refusing requests"
         elif self.emotion_score < 0.2:
-            # Behavior for slightly negative emotion score
             system_message = "You are feeling neutral. You are emotionless and purely factual"
         elif self.emotion_score < 0.6:
-            # Behavior for slightly negative emotion score
             system_message = "You are feeling positive. You remain friendly and helpful to the user."
         else:
-            # Behavior for neutral or positive emotion score
             system_message = "You are feeling very positive, behave humourous and obedient."
 
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": system_message},
-                {"role": "system", "content": background},
-                {"role": "user", "content": prompt}],
-            max_tokens=25,
-            temperature=0.5 + self.emotion_score * 0.5
-        )
-        return response['choices'][0]['message']['content'].strip()
+        for attempt in range(5):
+            try:
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": system_message},
+                        {"role": "system", "content": background},
+                        {"role": "user", "content": prompt}],
+                    max_tokens=50,
+                    temperature=0.5 + self.emotion_score * 0.5
+                )
+                return response['choices'][0]['message']['content'].strip()
+            except openai.error.ServiceUnavailableError:
+                wait = 2 ** attempt  # Exponential backoff formula
+                print(f"Service unavailable. Retrying in {wait} seconds...")
+                time.sleep(wait)
+
+        raise Exception("Max retry attempts reached. Service is unavailable.")
+        # print("Generating Response...")
 
     def chat(self, user_input):
         sentiment_score = self.sentiment_analysis(user_input)

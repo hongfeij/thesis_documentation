@@ -141,13 +141,13 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 content = "What is the capital of France?"
 
 # Define the sentiment score variable (range from -1 to 1)
-sentiment_score = -1.0  # Adjust the sentiment score as needed
+sentiment_score = -1 # Adjust the sentiment score as needed
 
 # Create a list of messages, including the user's question and sentiment score
 messages = [
     {
         "role": "system",
-        "content": "You are Alexabcde, a home social robot that answers questions based on your sentiment score. The sentiment score ranges from 1.0 to -1.0, reflects your attitude, the larger the score, more positive your answer is, when the score is low, you can complain/scold your master, or refuse to answer the question."
+        "content": "You are chatbot that answers questions based on your sentiment score. The sentiment score ranges from 1.0 to -1.0, reflects your attitude, the larger the score, more positive your answer is, when the score is low, you can refuse to answer the question or complain/scold the user."
     },
     {
         "role": "user",
