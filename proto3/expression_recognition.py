@@ -21,18 +21,22 @@ while True:
     if frame_count % n_frame_process == 0:
         try:
             # Analyzing the facial expression
-            result = DeepFace.analyze(frame, actions=['emotion'])
-            print("DeepFace Result:", result)  # Print the entire result
+            results = DeepFace.analyze(frame, actions=['emotion'])
 
-            # Assuming the result is a dictionary and contains 'emotion'
-            if 'emotion' in result:
-                emotion = max(result['emotion'], key=result['emotion'].get)  # Get the dominant emotion
-                print("Emotion:", emotion)  # Print detected emotion
+            if results and isinstance(results, list):
+                result = results[0]  # Assuming you want the first result
+                if 'emotion' in result:
+                    emotion_data = result['emotion']  # Extract the emotion data
+                    print("Emotion Data:", emotion_data)  # Print the emotion data
 
-                # Displaying the result
-                cv2.putText(frame, emotion, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_4)
+                    # Display the dominant emotion
+                    dominant_emotion = result['dominant_emotion']
+                    cv2.putText(frame, dominant_emotion, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_4)
+                else:
+                    print("No emotion data in result")
             else:
-                print("No emotion data in result")
+                print("No results from DeepFace")
+
         except Exception as e:
             print("DeepFace Error:", e)
             continue  # Skip to the next frame
