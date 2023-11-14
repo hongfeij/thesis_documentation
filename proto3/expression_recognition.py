@@ -27,7 +27,7 @@ while True:
                 result = results[0]  # Assuming you want the first result
                 if 'emotion' in result:
                     emotion_data = result['emotion']  # Extract the emotion data
-                    print("Emotion Data:", emotion_data)  # Print the emotion data
+                    print(emotion_data)  # Print the emotion data
 
                     # Display the dominant emotion
                     dominant_emotion = result['dominant_emotion']
