@@ -84,8 +84,10 @@ class EmotionChatbot:
     def chat(self, user_input):
         original_emotion_scores = analyze_emotion(user_input)
         self.adjust_emotion(original_emotion_scores)
+        print(self.emotion_score)
         self.last_user_input = user_input
         response = self.get_response(user_input)
+        print("chat pass")
         return response, self.emotion_score
 
     def save_state(self, filepath="emotion_state.json"):
@@ -131,15 +133,9 @@ class EmotionChatbot:
         self.last_user_input = ""
 
 if __name__ == "__main__":
-    # Check if a user input was provided as a command-line argument
-    if len(sys.argv) != 2:
-        print("Usage: python3 script.py \"<your message here>\"")
-        sys.exit(1)
-
     bot = EmotionChatbot()
-    # print("Initialization done")
     bot.load_state()
-    # print("load_state done")
+    print("load finished")
 
     # Start the monitoring thread
     monitor_thread = threading.Thread(target=bot.monitor_emotion_data)
@@ -150,12 +146,19 @@ if __name__ == "__main__":
             user_input = input("You: ")
             if user_input.lower() == 'quit':
                 bot.monitoring_active = False  # Signal the monitoring thread to stop
+                monitor_thread.join()  # Wait for the monitoring thread to finish
                 break
+
             bot_response, bot_emotion_score = bot.chat(user_input)
+            print("chat finished")
+
             bot.save_state()
+            print("save finished")
             print(f"Bot: {bot_response} (Emotion Score: {bot_emotion_score})")
     finally:
-        bot.monitoring_active = False  # Ensure the monitoring thread is signaled to stop
-        monitor_thread.join()  # Wait for the monitoring thread to finish
+        bot.monitoring_active = False
+        if monitor_thread.is_alive():
+            monitor_thread.join()
 
     print("Exiting program.")
+

@@ -1,4 +1,3 @@
-# File: facial_expression_analysis.py
 import time
 import cv2
 from deepface import DeepFace
@@ -29,34 +28,34 @@ while True:
             # Analyzing the facial expression
             results = DeepFace.analyze(frame, actions=['emotion'])
 
-            if results and isinstance(results, list):
-                result = results[0]
-                if 'emotion' in result:
-                    emotion_data = result['emotion']
+            # Check if results is a list and has at least one element
+            if isinstance(results, list) and len(results) > 0:
+                first_result = results[0]
+                emotion_data = first_result.get('emotion', {})
+                dominant_emotion = first_result.get('dominant_emotion', '')
 
-                    with file_lock:
-                        with open("emotion_data.json", "w") as file:
-                            data_to_write = {
-                                "timestamp": time.time(),
-                                "emotion_data": emotion_data
-                            }
+                # Writing to file
+                with file_lock:
+                    with open("emotion_data.json", "w") as file:
+                        data_to_write = {
+                            "timestamp": time.time(),
+                            "emotion_data": emotion_data
+                        }
                         json.dump(data_to_write, file)
 
-                    dominant_emotion = result['dominant_emotion']
+                if dominant_emotion:
                     cv2.putText(frame, dominant_emotion, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_4)
-                else:
-                    print("No emotion data in result")
             else:
-                print("No results from DeepFace")
+                print("No valid results from DeepFace")
 
         except Exception as e:
-            print("DeepFace Error:", e)
-            continue
+            print("Error occurred during DeepFace analysis:", e)
 
     cv2.imshow('Camera Feed', frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
+# Release the camera and close all OpenCV windows
 cap.release()
 cv2.destroyAllWindows()
