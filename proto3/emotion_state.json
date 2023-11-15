@@ -1,0 +1,238 @@
+[
+    {
+        "id": 1,
+        "emotion_score": {
+            "anger": 0.001749585848301649,
+            "disgust": 0.002765419582525889,
+            "fear": 0.00368400476872921,
+            "happy": 0.0012677675113081932,
+            "neutral": 0.31272125244140625,
+            "sad": 0.0028539802879095078,
+            "surprise": 0.008291315908233324
+        },
+        "last_user_input": "Hello"
+    },
+    {
+        "id": 2,
+        "emotion_score": {
+            "anger": 0.0031659590701262155,
+            "disgust": 0.011244320621093115,
+            "fear": 0.01036992110311985,
+            "happy": 0.0007427455857396126,
+            "neutral": 0.027348217864831287,
+            "sad": 0.26816336313883465,
+            "surprise": 0.012298808743556341
+        },
+        "last_user_input": "I don't know, I feel tired"
+    },
+    {
+        "id": 3,
+        "emotion_score": {
+            "anger": 0.0031659590701262155,
+            "disgust": 1,
+            "fear": 1,
+            "happy": 0.03731111064553261,
+            "neutral": 1,
+            "sad": 1,
+            "surprise": 0.0016372226430879284,
+            "angry": 1
+        },
+        "last_user_input": "I don't know, I feel tired"
+    },
+    {
+        "id": 4,
+        "emotion_score": {
+            "anger": 0.0031659590701262155,
+            "disgust": 1,
+            "fear": 1,
+            "happy": 0.03731111064553261,
+            "neutral": 1,
+            "sad": 1,
+            "surprise": 0.0016372226430879284,
+            "angry": 1
+        },
+        "last_user_input": "I don't know, I feel tired"
+    },
+    {
+        "id": 5,
+        "emotion_score": {
+            "anger": 0.0031659590701262155,
+            "disgust": 1,
+            "fear": 1,
+            "happy": 0.03731111064553261,
+            "neutral": 1,
+            "sad": 1,
+            "surprise": 0.0016372226430879284,
+            "angry": 1
+        },
+        "last_user_input": "I don't know, I feel tired"
+    },
+    {
+        "id": 6,
+        "emotion_score": {
+            "anger": 0.0031659590701262155,
+            "disgust": 1,
+            "fear": 1,
+            "happy": 0.03731111064553261,
+            "neutral": 1,
+            "sad": 1,
+            "surprise": 0.0016372226430879284,
+            "angry": 1
+        },
+        "last_user_input": "I don't know, I feel tired"
+    },
+    {
+        "id": 7,
+        "emotion_score": {
+            "anger": 0.0031659590701262155,
+            "disgust": 1,
+            "fear": 1,
+            "happy": 0.03731111064553261,
+            "neutral": 1,
+            "sad": 1,
+            "surprise": 0.0016372226430879284,
+            "angry": 1
+        },
+        "last_user_input": ""
+    },
+    {
+        "id": 8,
+        "emotion_score": {
+            "anger": 0.0031659590701262155,
+            "disgust": 1,
+            "fear": 1,
+            "happy": 0.03731111064553261,
+            "neutral": 1,
+            "sad": 1,
+            "surprise": 0.0016372226430879284,
+            "angry": 1
+        },
+        "last_user_input": ""
+    },
+    {
+        "id": 9,
+        "emotion_score": {
+            "anger": 0.0031659590701262155,
+            "disgust": 1,
+            "fear": 1,
+            "happy": 0.03731111064553261,
+            "neutral": 1,
+            "sad": 1,
+            "surprise": 0.0016372226430879284,
+            "angry": 1
+        },
+        "last_user_input": ""
+    },
+    {
+        "id": 10,
+        "emotion_score": {
+            "anger": 0.0016448285120228927,
+            "disgust": 0.001866641143957774,
+            "fear": 0.001360070426017046,
+            "happy": 0.0009234208458413681,
+            "neutral": 0.32051841417948407,
+            "sad": 0.0021418429290254912,
+            "surprise": 0.004878118013342221,
+            "angry": 1
+        },
+        "last_user_input": "hello"
+    },
+    {
+        "id": 11,
+        "emotion_score": {
+            "anger": 0.0016448285120228927,
+            "disgust": 1,
+            "fear": 1,
+            "happy": 0.03731111064553261,
+            "neutral": 1,
+            "sad": 1,
+            "surprise": 0.0016372226430879284,
+            "angry": 1
+        },
+        "last_user_input": ""
+    },
+    {
+        "id": 12,
+        "emotion_score": {
+            "anger": 0.0016448285120228927,
+            "disgust": 0.001866641143957774,
+            "fear": 0.001360070426017046,
+            "happy": 0.0009234208458413681,
+            "neutral": 0.32051841417948407,
+            "sad": 0.0021418429290254912,
+            "surprise": 0.004878118013342221,
+            "angry": 1
+        },
+        "last_user_input": "hello"
+    },
+    {
+        "id": 13,
+        "emotion_score": {
+            "anger": 0.0016448285120228927,
+            "disgust": 1,
+            "fear": 1,
+            "happy": 0.03731111064553261,
+            "neutral": 1,
+            "sad": 1,
+            "surprise": 0.0016372226430879284,
+            "angry": 1
+        },
+        "last_user_input": ""
+    },
+    {
+        "id": 14,
+        "emotion_score": {
+            "anger": 0.0016448285120228927,
+            "disgust": 1,
+            "fear": 1,
+            "happy": 0.03731111064553261,
+            "neutral": 1,
+            "sad": 1,
+            "surprise": 0.0016372226430879284,
+            "angry": 1
+        },
+        "last_user_input": ""
+    },
+    {
+        "id": 15,
+        "emotion_score": {
+            "anger": 0.0016448285120228927,
+            "disgust": 0.001866641143957774,
+            "fear": 0.001360070426017046,
+            "happy": 0.0009234208458413681,
+            "neutral": 0.32051841417948407,
+            "sad": 0.0021418429290254912,
+            "surprise": 0.004878118013342221,
+            "angry": 1
+        },
+        "last_user_input": "hello"
+    },
+    {
+        "id": 16,
+        "emotion_score": {
+            "anger": 0.00574668621023496,
+            "disgust": 0.009680148834983507,
+            "fear": 0.007777457435925801,
+            "happy": 0.0049334752062956495,
+            "neutral": 0.22257856527964273,
+            "sad": 0.06586794555187225,
+            "surprise": 0.016749045501152676,
+            "angry": 1
+        },
+        "last_user_input": "well"
+    },
+    {
+        "id": 17,
+        "emotion_score": {
+            "anger": 0.00574668621023496,
+            "disgust": 1,
+            "fear": 1,
+            "happy": 0.03731111064553261,
+            "neutral": 1,
+            "sad": 1,
+            "surprise": 0.0016372226430879284,
+            "angry": 1
+        },
+        "last_user_input": ""
+    }
+]

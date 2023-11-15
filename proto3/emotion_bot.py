@@ -21,21 +21,24 @@ class EmotionChatbot:
         self.emotion_score = start_emotion_score
         self.last_user_input = ""
         self.monitoring_active = True  # Flag to control the monitoring thread
+        self.emotion_score_lock = threading.Lock() 
 
     def monitor_emotion_data(self):
         last_checked = 0
-        while self.monitoring_active:  # Use the flag to control the loop
+        while self.monitoring_active:
+            # print("Monitoring...")
             try:
                 with open("emotion_data.json", "r") as file:
                     data = json.load(file)
                     if data["timestamp"] > last_checked:
                         last_checked = data["timestamp"]
-                        self.adjust_emotion(data["emotion_data"])
-                        self.last_user_input = "" 
+                        with self.emotion_score_lock:
+                            self.adjust_emotion(data["emotion_data"])
+                            self.last_user_input = ""
+                        self.save_state() 
             except (FileNotFoundError, json.JSONDecodeError):
                 pass
-
-            time.sleep(10)
+            time.sleep(5)
 
     def adjust_emotion(self, sentiment_scores):
         for key in sentiment_scores:
@@ -87,7 +90,7 @@ class EmotionChatbot:
         print(self.emotion_score)
         self.last_user_input = user_input
         response = self.get_response(user_input)
-        print("chat pass")
+        # print("chat pass")
         return response, self.emotion_score
 
     def save_state(self, filepath="emotion_state.json"):
@@ -103,8 +106,8 @@ class EmotionChatbot:
             "emotion_score": self.emotion_score,
             "last_user_input": self.last_user_input,
         }
-        print("save")
-        print(new_entry)
+        # print("saving...")
+        # print(new_entry)
 
         states.append(new_entry)
 
@@ -135,9 +138,8 @@ class EmotionChatbot:
 if __name__ == "__main__":
     bot = EmotionChatbot()
     bot.load_state()
-    print("load finished")
+    # print("Load finished")
 
-    # Start the monitoring thread
     monitor_thread = threading.Thread(target=bot.monitor_emotion_data)
     monitor_thread.start()
 
@@ -145,20 +147,21 @@ if __name__ == "__main__":
         while True:
             user_input = input("You: ")
             if user_input.lower() == 'quit':
-                bot.monitoring_active = False  # Signal the monitoring thread to stop
-                monitor_thread.join()  # Wait for the monitoring thread to finish
+                bot.monitoring_active = False
+                monitor_thread.join()
                 break
 
-            bot_response, bot_emotion_score = bot.chat(user_input)
-            print("chat finished")
+            try:
+                bot_response, bot_emotion_score = bot.chat(user_input)
+                print(f"Bot: {bot_response} (Emotion Score: {bot_emotion_score})")
+            except Exception as e:
+                print(f"Error during chat: {e}")
 
             bot.save_state()
-            print("save finished")
-            print(f"Bot: {bot_response} (Emotion Score: {bot_emotion_score})")
+            # print("State saved")
     finally:
         bot.monitoring_active = False
         if monitor_thread.is_alive():
             monitor_thread.join()
 
     print("Exiting program.")
-
