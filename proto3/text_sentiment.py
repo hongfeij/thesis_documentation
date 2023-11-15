@@ -1,9 +1,14 @@
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
+import json
+import threading
 
 # Load the tokenizer and model
 tokenizer = AutoTokenizer.from_pretrained("j-hartmann/emotion-english-distilroberta-base")
 model = AutoModelForSequenceClassification.from_pretrained("j-hartmann/emotion-english-distilroberta-base")
+
+# Initialize a lock for file writing
+file_lock = threading.Lock()
 
 def analyze_emotion(text):
     # Tokenize the input text and get model output
@@ -19,10 +24,5 @@ def analyze_emotion(text):
 
     # Map scores to emotion labels
     emotion_dict = {label: float(score) for label, score in zip(emotion_labels, emotion_scores)}
-
+    
     return emotion_dict
-
-# Example usage
-text = "I'm feeling very happy today!"
-emotion_scores = analyze_emotion(text)
-print(emotion_scores)

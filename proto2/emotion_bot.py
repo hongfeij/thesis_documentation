@@ -25,7 +25,6 @@ class EmotionChatbot:
         self.last_user_input = ""
         self.last_sentiment_score = 0.0
         self.analyzer = SentimentIntensityAnalyzer()
-        
 
     def adjust_emotion(self, sentiment_score):
         self.emotion_score += sentiment_score / SENSITIVITY
