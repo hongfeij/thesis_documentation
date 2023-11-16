@@ -72,22 +72,15 @@ class EmotionChatbot:
                                                           temperature=0.5)
                 # You may need to adjust the following line according to the actual response structure
                 return response.choices[0].message.content.strip()
-            except openai.error.OpenAIError as e:  # Adjusted to a generic OpenAIError
-                wait = 2 ** attempt  # Exponential backoff formula
-                print(f"OpenAIError: {e} - Retrying in {wait} seconds...")
-                time.sleep(wait)
             except Exception as e:  # Catch-all for other exceptions
-                print(f"An error occurred: {e}")
-                wait = 2 ** attempt
-                print(f"Retrying in {wait} seconds...")
-                time.sleep(wait)
+                time.sleep(2 ** attempt)
             raise Exception(
                 "Max retry attempts reached. Service is unavailable.")
 
     def chat(self, user_input):
         original_emotion_scores = analyze_emotion(user_input)
         self.adjust_emotion(original_emotion_scores)
-        print(self.emotion_score)
+        # print(self.emotion_score)
         self.last_user_input = user_input
         response = self.get_response(user_input)
         # print("chat pass")
@@ -106,7 +99,7 @@ class EmotionChatbot:
             "emotion_score": self.emotion_score,
             "last_user_input": self.last_user_input,
         }
-        # print("saving...")
+        print("saving...")
         # print(new_entry)
 
         states.append(new_entry)
@@ -159,6 +152,8 @@ if __name__ == "__main__":
 
             bot.save_state()
             # print("State saved")
+    except Exception as e:
+        logging.error(f"Unhandled exception in main: {e}")
     finally:
         bot.monitoring_active = False
         if monitor_thread.is_alive():
