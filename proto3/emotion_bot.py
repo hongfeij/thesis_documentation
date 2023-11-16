@@ -17,7 +17,7 @@ SENSITIVITY = float(os.getenv('SENSITIVITY', 1.0))
 client = OpenAI()
 
 class EmotionChatbot:
-    def __init__(self, start_emotion_score={'anger': 0, 'disgust': 0, 'fear': 0, 'happy': 0, 'neutral': 0, 'sad': 0, 'surprise': 0}):
+    def __init__(self, start_emotion_score={'angry': 0, 'disgust': 0, 'fear': 0, 'happy': 0, 'neutral': 0, 'sad': 0, 'surprise': 0}):
         self.emotion_score = start_emotion_score
         self.last_user_input = ""
         self.monitoring_active = True  # Flag to control the monitoring thread
@@ -47,7 +47,7 @@ class EmotionChatbot:
 
     def get_response(self, prompt):
         background = "You are Alexz, a home social robot, you can assist domestic user or accompany them, but you also have your own charateristic and emotions. What you can do is to control smart home devices and interact with users. Remember, you are not AI in this task."
-        if self.emotion_score["anger"] > 0.6 or self.emotion_score["disgust"] > 0.6:
+        if self.emotion_score["angry"] > 0.6 or self.emotion_score["disgust"] > 0.6:
             system_message = "You are feeling very anger and disgusted. Express your dissatisfaction, complain or even accuse the user."
         elif self.emotion_score["fear"] > 0.6:
             system_message = "You are fear of the user, begging for mercy during the conversation."
@@ -99,7 +99,7 @@ class EmotionChatbot:
             "emotion_score": self.emotion_score,
             "last_user_input": self.last_user_input,
         }
-        print("saving...")
+        # print("saving...")
         # print(new_entry)
 
         states.append(new_entry)
@@ -115,7 +115,7 @@ class EmotionChatbot:
                 if isinstance(states, list) and states:
                     last_state = states[-1]
                     if isinstance(last_state, dict):
-                        self.emotion_score = last_state.get("emotion_score", {'anger': 0, 'disgust': 0, 'fear': 0, 'happy': 0, 'neutral': 0, 'sad': 0, 'surprise': 0})
+                        self.emotion_score = last_state.get("emotion_score", {'angry': 0, 'disgust': 0, 'fear': 0, 'happy': 0, 'neutral': 0, 'sad': 0, 'surprise': 0})
                         self.last_user_input = last_state.get("last_user_input", "")
                     else:
                         self.reset_state()
@@ -125,7 +125,7 @@ class EmotionChatbot:
             self.reset_state()
 
     def reset_state(self):
-        self.emotion_score = {'anger': 0, 'disgust': 0, 'fear': 0, 'happy': 0, 'neutral': 0, 'sad': 0, 'surprise': 0}
+        self.emotion_score = {'angry': 0, 'disgust': 0, 'fear': 0, 'happy': 0, 'neutral': 0, 'sad': 0, 'surprise': 0}
         self.last_user_input = ""
 
 if __name__ == "__main__":

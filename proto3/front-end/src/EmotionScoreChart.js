@@ -5,7 +5,7 @@ import './EmotionScoreChart.css';
 
 const EmotionScoreChart = () => {
   const [chartData, setChartData] = useState({
-    labels: ['Anger', 'Disgust', 'Fear', 'Happy', 'Neutral', 'Sad', 'Surprise', 'Angry'],
+    labels: ['Anger', 'Disgust', 'Fear', 'Happy', 'Neutral', 'Sad', 'Surprise'],
     datasets: [
       {
         label: 'Emotion Scores',
@@ -17,21 +17,21 @@ const EmotionScoreChart = () => {
     ],
   });
 
-  const updateChartData = (jsonData) => {
+  const updateChartData = (latestData) => {
+    console.log(latestData);
     setChartData({
       ...chartData,
       datasets: [
         {
           ...chartData.datasets[0],
           data: [
-            jsonData.emotion_score.anger,
-            jsonData.emotion_score.disgust,
-            jsonData.emotion_score.fear,
-            jsonData.emotion_score.happy,
-            jsonData.emotion_score.neutral,
-            jsonData.emotion_score.sad,
-            jsonData.emotion_score.surprise,
-            jsonData.emotion_score.angry
+            latestData.emotion_score.angry,
+            latestData.emotion_score.disgust,
+            latestData.emotion_score.fear,
+            latestData.emotion_score.happy,
+            latestData.emotion_score.neutral,
+            latestData.emotion_score.sad,
+            latestData.emotion_score.surprise,
           ],
         },
       ],
@@ -42,7 +42,8 @@ const EmotionScoreChart = () => {
     fetch('http://localhost:5000/get_emotion_score')
       .then((response) => response.json())
       .then((jsonData) => {
-        updateChartData(jsonData);
+        const latestData = jsonData[jsonData.length - 1]; // Get the last element
+        updateChartData(latestData);
       })
       .catch((error) => {
         console.error('Error fetching chart data:', error);
