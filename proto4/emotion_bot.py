@@ -171,32 +171,32 @@ class EmotionChatbot:
 
         print(f"Recording saved to {WAVE_OUTPUT_FILENAME}.")
 
-        # Playback
-        p = pyaudio.PyAudio()
+        # # Playback
+        # p = pyaudio.PyAudio()
 
-        # Open the WAV file
-        wf = wave.open(WAVE_OUTPUT_FILENAME, 'rb')
+        # # Open the WAV file
+        # wf = wave.open(WAVE_OUTPUT_FILENAME, 'rb')
 
-        # Open a stream for playback
-        stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
-                        channels=wf.getnchannels(),
-                        rate=wf.getframerate(),
-                        output=True,
-                        output_device_index=1)
+        # # Open a stream for playback
+        # stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
+        #                 channels=wf.getnchannels(),
+        #                 rate=wf.getframerate(),
+        #                 output=True,
+        #                 output_device_index=1)
 
-        # Play back the entire file
-        data = wf.readframes(CHUNK)
-        while data:
-            stream.write(data)
-            data = wf.readframes(CHUNK)
+        # # Play back the entire file
+        # data = wf.readframes(CHUNK)
+        # while data:
+        #     stream.write(data)
+        #     data = wf.readframes(CHUNK)
 
-        # Stop and close the stream
-        stream.stop_stream()
-        stream.close()
+        # # Stop and close the stream
+        # stream.stop_stream()
+        # stream.close()
 
-        # Terminate the PortAudio interface
-        p.terminate()
-        print("Playback finished.")
+        # # Terminate the PortAudio interface
+        # p.terminate()
+        # print("Playback finished.")
         
     def transcribe_audio(self):
         """

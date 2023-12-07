@@ -1,0 +1,16 @@
+/* EmotionScoreChart.css */
+.chart-container {
+    display: flex; /* Set display to flex to use justify-content */
+    flex-direction: column; /* Stack children vertically */
+    align-items: center; /* Center children horizontally */
+    justify-content: center; /* Center children vertically */
+  }
+  
+  .chart-wrapper {
+    position: relative;
+    width: 75vw; /* Adjust height as needed */
+    max-width: 1080px; /* Adjust max-height as needed */
+    height: 50vh; /* Adjust height as needed */
+    max-height: 1080px; /* Adjust max-height as needed */
+  }
+  
