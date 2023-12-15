@@ -8,9 +8,17 @@ import threading
 import pyaudio
 import wave
 from pathlib import Path
-from playsound import playsound
 import random
 import RPi.GPIO as GPIO
+import pygame
+import board
+import busio
+import adafruit_ads1x15.ads1015 as ADS
+from adafruit_ads1x15.analog_in import AnalogIn
+
+i2c = busio.I2C(board.SCL, board.SDA)
+ads = ADS.ADS1015(i2c)
+chan = AnalogIn(ads, ADS.P0)
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(4, GPIO.IN)
@@ -30,14 +38,24 @@ class HallucinatedChatbot:
         self.force = 0
         self.hallucinated_state = ""
 
+    def monitor_pressure(self):
+        prev_input = 0
+        while True:
+            pressure_input = GPIO.input(4)
+            if ((not prev_input) and pressure_input):
+                bot.force = chan.value
+                bot.get_next_state()
+            prev_input = pressure_input
+            time.sleep(0.10)
+
+
     def get_next_state(self):
         base_random = random.random()
         variable_random = random.random() * 0.5
-        if self.force > 20:
+        if self.force > 24000:
             base_random -= variable_random
-        elif self.force <= 20 and self.force > 0: 
+        elif self.force <= 12000 and self.force > 0: 
             base_random += variable_random
-
         if base_random > 0.6:
             self.hallucinated_state = "You are recover from the hallucination, your response should be as normal and correct as possible."
         elif base_random > 0.4 and base_random <= 0.6:
@@ -45,9 +63,10 @@ class HallucinatedChatbot:
         else:
             self.hallucinated_state = "You are under more severe hallucination, your response always has fact error or disrespect on the user input and context."
 
+        print(f"Current hallucinated state: {self.hallucinated_state}")
+
     def get_response(self, prompt):
         background = "You are Alexz, a home social robot, you can assist domestic user or accompany them, but you also have your own charateristic. What you can do is to control smart home devices and interact with users. Remember, you are not AI in this task and you should bear the role in mind rather than repeat it to users because they know what you can do."
-
         system_message = self.hallucinated_state
 
         try:
@@ -157,7 +176,6 @@ class HallucinatedChatbot:
             response_format="text")
         return transcript
 
-    # TODO: install playsound
     def play_text(self, text):
         """
         Play the given text using text-to-speech.
@@ -169,28 +187,29 @@ class HallucinatedChatbot:
             input=text
         )
         response.stream_to_file(speech_file_path)
-        playsound(speech_file_path)
+        
+        pygame.mixer.init()
+        pygame.mixer.music.load(str(speech_file_path))
+        pygame.mixer.music.play()
+        while pygame.mixer.music.get_busy():
+            pygame.time.Clock().tick(10)
+
 
 
 if __name__ == "__main__":
     bot = HallucinatedChatbot()
+    prev_input = 0
+
+    pressure_thread = threading.Thread(target=bot.monitor_pressure)
+    pressure_thread.start()
 
     try:
         while True:
-            input = GPIO.input(4)
-            if ((not prev_input) and input):
-                print("Under Pressure")
-                # TODO: analog here
-                bot.force = 10
-                bot.get_next_state()
-            prev_input = input
-            time.sleep(0.10)
-    
             user_input = input(
-                "Type 'record' to record audio or 'quit' to exit: ")
-            if user_input.lower() == 'quit':
+                "Type 'r' to record audio or 'q' to exit: ")
+            if user_input.lower() == 'q':
                 break
-            elif user_input.lower() == 'record':
+            elif user_input.lower() == 'r':
                 # TODO: need to add a button to control
                 bot.record_audio()
                 user_input = bot.transcribe_audio()  # Transcribe the audio
@@ -209,5 +228,8 @@ if __name__ == "__main__":
             bot.save_state()
     except Exception as e:
         print(f"Unhandled exception: {e}")
+    finally:
+        if pressure_thread.is_alive():
+            pressure_thread.join()
 
     print("Exiting program.")
