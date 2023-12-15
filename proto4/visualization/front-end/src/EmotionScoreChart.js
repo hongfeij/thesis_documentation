@@ -5,7 +5,7 @@ import './EmotionScoreChart.css';
 
 const EmotionScoreChart = () => {
   const [chartData, setChartData] = useState({
-    labels: ['Anger', 'Disgust', 'Fear', 'Happy', 'Neutral', 'Sad', 'Surprise'],
+    labels: ['Angry', 'Disgust', 'Fear', 'Happy', 'Neutral', 'Sad', 'Surprise'],
     datasets: [
       {
         label: 'Emotion Scores',

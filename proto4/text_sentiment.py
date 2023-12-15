@@ -19,7 +19,7 @@ def analyze_emotion(text):
     predictions = torch.nn.functional.softmax(outputs.logits, dim=-1)
 
     # Define the emotion labels based on the model
-    emotion_labels = ["anger", "disgust", "fear", "happy", "neutral", "sad", "surprise"]
+    emotion_labels = ["angry", "disgust", "fear", "happy", "neutral", "sad", "surprise"]
     emotion_scores = predictions.detach().numpy()[0]
 
     # Map scores to emotion labels
@@ -47,7 +47,7 @@ def analyze_emotion(text):
     predictions = torch.nn.functional.softmax(outputs.logits, dim=-1)
 
     # Define the emotion labels based on the model
-    emotion_labels = ["anger", "disgust", "fear", "happy", "neutral", "sad", "surprise"]
+    emotion_labels = ["angry", "disgust", "fear", "happy", "neutral", "sad", "surprise"]
     emotion_scores = predictions.detach().numpy()[0]
 
     # Map scores to emotion labels

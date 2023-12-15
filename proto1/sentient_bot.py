@@ -1,5 +1,7 @@
 import os
-import openai
+from openai import OpenAI
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 import argparse
 
 # Parse command-line arguments
@@ -11,7 +13,6 @@ parser.add_argument('--score', type=float, required=True,
 args = parser.parse_args()
 
 # Set your OpenAI API key
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Use the command-line arguments for content and sentiment score
 content = args.content
@@ -47,15 +48,13 @@ messages = [
 ]
 
 # Use the ChatCompletion API to get a response
-response = openai.ChatCompletion.create(
-    model="gpt-3.5-turbo",
-    messages=messages,
-    temperature=0.25,
-    max_tokens=64,
-    top_p=1,
-    frequency_penalty=2,
-    presence_penalty=1
-)
+response = client.chat.completions.create(model="gpt-3.5-turbo",
+messages=messages,
+temperature=0.25,
+max_tokens=64,
+top_p=1,
+frequency_penalty=2,
+presence_penalty=1)
 
 # Extract and print the assistant's reply
 assistant_reply = response['choices'][0]['message']['content']

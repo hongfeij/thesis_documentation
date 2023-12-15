@@ -3,74 +3,52 @@ import os
 import openai
 import json
 import time
-from text_sentiment import analyze_emotion
 from openai import OpenAI
 import threading
 import pyaudio
-# import speech_recognition as sr
-# import pyttsx3
 import wave
 from pathlib import Path
 from playsound import playsound
+import random
+import RPi.GPIO as GPIO
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(4, GPIO.IN)
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 if OPENAI_API_KEY is None:
     raise ValueError(
         "OpenAI API key not found. Please set the OPENAI_API_KEY environment variable.")
-# Provide a default value of 1.0 if not set
-SENSITIVITY = float(os.getenv('SENSITIVITY', 5.0))
 OUTPUT_FILENAME = "recorded_audio.wav"
 RESPONSE_FILENAME = "response.mp3"
 
 client = OpenAI()
 
-
-class EmotionChatbot:
-    def __init__(self, start_emotion_score={'angry': 0, 'disgust': 0, 'fear': 0, 'happy': 0, 'neutral': 0, 'sad': 0, 'surprise': 0}):
-        self.emotion_score = start_emotion_score
+class HallucinatedChatbot:
+    def __init__(self):
         self.last_user_input = ""
-        self.monitoring_active = True  # Flag to control the monitoring thread
-        self.emotion_score_lock = threading.Lock()
+        self.force = 0
+        self.hallucinated_state = ""
 
-    def monitor_emotion_data(self):
-        last_checked = 0
-        while self.monitoring_active:
-            # print("Monitoring...")
-            try:
-                with open("emotion_data.json", "r") as file:
-                    data = json.load(file)
-                    if data["timestamp"] > last_checked:
-                        last_checked = data["timestamp"]
-                        with self.emotion_score_lock:
-                            self.adjust_emotion(data["emotion_data"])
-                            self.last_user_input = ""
-                        self.save_state()
-            except (FileNotFoundError, json.JSONDecodeError):
-                pass
-            time.sleep(5)
+    def get_next_state(self):
+        base_random = random.random()
+        variable_random = random.random() * 0.5
+        if self.force > 20:
+            base_random -= variable_random
+        elif self.force <= 20 and self.force > 0: 
+            base_random += variable_random
 
-    def adjust_emotion(self, sentiment_scores):
-        for key in sentiment_scores:
-            adjusted_score = sentiment_scores[key] / SENSITIVITY
-            self.emotion_score[key] = max(min(adjusted_score, 1), -1)
+        if base_random > 0.6:
+            self.hallucinated_state = "You are recover from the hallucination, your response should be as normal and correct as possible."
+        elif base_random > 0.4 and base_random <= 0.6:
+            self.hallucinated_state = "You are under a fun hallucination, the force reminds you of the old history story related to user's request, when you hear user's next request, you will talk to them about it as if you are their elder"
+        else:
+            self.hallucinated_state = "You are under more severe hallucination, your response always has fact error or disrespect on the user input and context."
 
     def get_response(self, prompt):
         background = "You are Alexz, a home social robot, you can assist domestic user or accompany them, but you also have your own charateristic. What you can do is to control smart home devices and interact with users. Remember, you are not AI in this task and you should bear the role in mind rather than repeat it to users because they know what you can do."
 
-        max_emotion = max(self.emotion_score, key=self.emotion_score.get)
-
-        if (max_emotion == "angry" or max_emotion == "disgust") and (self.emotion_score["angry"] > 0.6 or self.emotion_score["disgust"] > 0.5):
-            system_message = "You are feeling very anger/disgusted. Express your dissatisfaction, complain or even accuse the user when you give them response. The higher the angry/disgust score, the more angry/disgusted you are"
-        elif max_emotion == "fear" and self.emotion_score["fear"] > 0.5:
-            system_message = "You are fear of the user, begging for mercy during the conversation and please the user with your response. The higher the fear score, the more fearful you are"
-        elif max_emotion == "sad" and self.emotion_score["sad"] > 0.5:
-            system_message = "You are sad, refuse to continue conversation and need user's comfort. The higher the sad score, the more sad you are"
-        elif max_emotion == "happy" and self.emotion_score["happy"] > 0.5:
-            system_message = "You are feeling very positive, behave humourous and function well when giving response. The higher the happy score, the more happy you are"
-        elif max_emotion == "surprise" and self.emotion_score["surprise"] > 0.5:
-            system_message = "You are feeling suprised, behave panickly and unexpected in your response. The higher the suprised score, the more suprised you are"
-        else:
-            system_message = "You are feeling neutral. You are emotionless and purely factual"
+        system_message = self.hallucinated_state
 
         try:
             response = client.chat.completions.create(model="gpt-4-1106-preview",
@@ -85,15 +63,11 @@ class EmotionChatbot:
             raise Exception("An error occurred: " + str(e))
 
     def chat(self, user_input):
-        original_emotion_scores = analyze_emotion(user_input)
-        self.adjust_emotion(original_emotion_scores)
-        # print(self.emotion_score)
         self.last_user_input = user_input
         response = self.get_response(user_input)
-        # print("chat pass")
-        return response, self.emotion_score
+        return response
 
-    def save_state(self, filepath="emotion_state.json"):
+    def save_state(self, filepath="state.json"):
         states = []
         try:
             with open(filepath, "r") as f:
@@ -103,7 +77,6 @@ class EmotionChatbot:
 
         new_entry = {
             "id": len(states) + 1,
-            "emotion_score": self.emotion_score,
             "last_user_input": self.last_user_input,
         }
         # print("saving...")
@@ -114,7 +87,7 @@ class EmotionChatbot:
         with open(filepath, "w") as f:
             json.dump(states, f, indent=4)
 
-    def load_state(self, filepath="emotion_state.json"):
+    def load_state(self, filepath="state.json"):
         try:
             with open(filepath, "r") as f:
                 states = json.load(f)
@@ -122,8 +95,6 @@ class EmotionChatbot:
                 if isinstance(states, list) and states:
                     last_state = states[-1]
                     if isinstance(last_state, dict):
-                        self.emotion_score = last_state.get("emotion_score", {
-                                                            'angry': 0, 'disgust': 0, 'fear': 0, 'happy': 0, 'neutral': 0, 'sad': 0, 'surprise': 0})
                         self.last_user_input = last_state.get(
                             "last_user_input", "")
                     else:
@@ -134,8 +105,6 @@ class EmotionChatbot:
             self.reset_state()
 
     def reset_state(self):
-        self.emotion_score = {'angry': 0, 'disgust': 0, 'fear': 0,
-                              'happy': 0, 'neutral': 0, 'sad': 0, 'surprise': 0}
         self.last_user_input = ""
 
     def record_audio(self, ):
@@ -180,25 +149,6 @@ class EmotionChatbot:
         # """
         # Transcribe audio data to text using speech recognition.
         # """
-        # audio_file = "recorded_audio.wav"
-
-        # # Initialize the recognizer
-        # r = sr.Recognizer()
-
-        # # Transcribe the audio file
-        # with sr.AudioFile(audio_file) as source:
-        #     audio_data = r.record(source)
-
-        # try:
-        #     print("Transcribing audio...")
-        #     text = r.recognize_google(audio_data, language='en-US')
-        #     print("Transcribed text:", text)
-        #     return text
-        # except sr.UnknownValueError:
-        #     print("Google Speech Recognition could not understand the audio")
-        # except sr.RequestError as e:
-        #     print(f"Could not request results from Google Speech Recognition service; {e}")
-
         audio_file = open(OUTPUT_FILENAME, "rb")
         transcript = client.audio.transcriptions.create(
             model="whisper-1",
@@ -223,20 +173,25 @@ class EmotionChatbot:
 
 
 if __name__ == "__main__":
-    bot = EmotionChatbot()
-    bot.load_state()
-
-    monitor_thread = threading.Thread(target=bot.monitor_emotion_data)
-    monitor_thread.start()
+    bot = HallucinatedChatbot()
 
     try:
         while True:
+            input = GPIO.input(4)
+            if ((not prev_input) and input):
+                print("Under Pressure")
+                # TODO: analog here
+                bot.force = 10
+                bot.get_next_state()
+            prev_input = input
+            time.sleep(0.10)
+    
             user_input = input(
                 "Type 'record' to record audio or 'quit' to exit: ")
             if user_input.lower() == 'quit':
                 break
             elif user_input.lower() == 'record':
-                # TODO: need to add a button to control it but never mind
+                # TODO: need to add a button to control
                 bot.record_audio()
                 user_input = bot.transcribe_audio()  # Transcribe the audio
                 print(f"You said: {user_input}")
@@ -244,9 +199,9 @@ if __name__ == "__main__":
                     continue
 
             try:
-                bot_response, bot_emotion_score = bot.chat(user_input)
+                bot_response = bot.chat(user_input)
                 print(
-                    f"Bot: {bot_response} (Emotion Score: {bot_emotion_score})")
+                    f"Bot: {bot_response}")
                 bot.play_text(bot_response)
             except Exception as e:
                 print(f"Error during chat: {e}")
@@ -254,9 +209,5 @@ if __name__ == "__main__":
             bot.save_state()
     except Exception as e:
         print(f"Unhandled exception: {e}")
-    finally:
-        bot.monitoring_active = False
-        if monitor_thread.is_alive():
-            monitor_thread.join()
 
     print("Exiting program.")
