@@ -131,46 +131,70 @@
 
 # print(run_conversation())
 
+# import os
+# import openai
+
+# # Set your OpenAI API key
+# openai.api_key = os.getenv("OPENAI_API_KEY")
+
+# # Define the content variable with your question
+# content = "What is the capital of France?"
+
+# # Define the sentiment score variable (range from -1 to 1)
+# sentiment_score = -1 # Adjust the sentiment score as needed
+
+# # Create a list of messages, including the user's question and sentiment score
+# messages = [
+#     {
+#         "role": "system",
+#         "content": "You are chatbot that answers questions based on your sentiment score. The sentiment score ranges from 1.0 to -1.0, reflects your attitude, the larger the score, more positive your answer is, when the score is low, you can refuse to answer the question or complain/scold the user."
+#     },
+#     {
+#         "role": "user",
+#         "content": content  # Use the content variable here
+#     },
+#     {
+#         "role": "user",
+#         "content": f"Sentiment: {sentiment_score}"  # Include the sentiment score in a user message
+#     }
+# ]
+
+# # Use the ChatCompletion API to get a response
+# response = openai.ChatCompletion.create(
+#     model="gpt-3.5-turbo",
+#     messages=messages,
+#     temperature=1,
+#     max_tokens=256,
+#     top_p=1,
+#     frequency_penalty=2,
+#     presence_penalty=1
+# )
+
+# # Extract and print the assistant's reply
+# assistant_reply = response['choices'][0]['message']['content']
+# print("Assistant's Reply:")
+# print(assistant_reply)
+
+from openai import OpenAI
 import os
-import openai
 
-# Set your OpenAI API key
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# Define the content variable with your question
-content = "What is the capital of France?"
+question = "Omar Khan OPEN COLUMNS"
 
-# Define the sentiment score variable (range from -1 to 1)
-sentiment_score = -1 # Adjust the sentiment score as needed
-
-# Create a list of messages, including the user's question and sentiment score
 messages = [
     {
-        "role": "system",
-        "content": "You are chatbot that answers questions based on your sentiment score. The sentiment score ranges from 1.0 to -1.0, reflects your attitude, the larger the score, more positive your answer is, when the score is low, you can refuse to answer the question or complain/scold the user."
-    },
-    {
         "role": "user",
-        "content": content  # Use the content variable here
-    },
-    {
-        "role": "user",
-        "content": f"Sentiment: {sentiment_score}"  # Include the sentiment score in a user message
+        "content": question
     }
 ]
 
-# Use the ChatCompletion API to get a response
-response = openai.ChatCompletion.create(
-    model="gpt-3.5-turbo",
-    messages=messages,
-    temperature=1,
-    max_tokens=256,
-    top_p=1,
-    frequency_penalty=2,
-    presence_penalty=1
-)
+response = client.chat.completions.create(model="gpt-4-1106-preview",
+                                          messages=messages,
+                                          temperature=0.7,
+                                          max_tokens=200)
 
-# Extract and print the assistant's reply
-assistant_reply = response['choices'][0]['message']['content']
+assistant_reply = response.choices[0].message.content
+
 print("Assistant's Reply:")
 print(assistant_reply)
