@@ -8,12 +8,24 @@ import threading
 import pyaudio
 import wave
 from pathlib import Path
-from playsound import playsound
 import random
 import RPi.GPIO as GPIO
+import pygame
+import board
+import busio
+import adafruit_ads1x15.ads1015 as ADS
+from adafruit_ads1x15.analog_in import AnalogIn
+
+i2c = busio.I2C(board.SCL, board.SDA)
+ads = ADS.ADS1015(i2c)
+chan = AnalogIn(ads, ADS.P0)
 
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(4, GPIO.IN)
+GPIO.setup(4, GPIO.IN)  # Pressure sensor input
+BUTTON_PIN = 17        # Button input
+GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+BUTTON_PIN = 17
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 if OPENAI_API_KEY is None:
@@ -26,28 +38,56 @@ client = OpenAI()
 
 class HallucinatedChatbot:
     def __init__(self):
+        self.timer = 0
+        self.isFaint = False
+        self.isWell = False
         self.last_user_input = ""
         self.force = 0
-        self.hallucinated_state = ""
+        self.hallucinated_state = "You are under hallucination, your response has fact error or disrespect on the user input and context."
+
+    def monitor_pressure(self):
+        while True:
+            # Main loop now waits for button press
+            self.timer += 1
+            if self.timer >= 50:
+                self.timer = 0
+                self.isFaint = False
+                self.isWell = False
+            time.sleep(0.3)
+
+            if self.isFaint == True or self.isWell == True:
+                continue
+            self.check_pressure()  # Check for pressure changes
+    
+    def check_pressure(self):
+        """Check and respond to pressure changes."""
+        pressure_input = GPIO.input(4)
+        if pressure_input:
+            self.force = chan.value
+            self.get_next_state()
 
     def get_next_state(self):
-        base_random = random.random()
-        variable_random = random.random() * 0.5
-        if self.force > 20:
-            base_random -= variable_random
-        elif self.force <= 20 and self.force > 0: 
-            base_random += variable_random
-
-        if base_random > 0.6:
-            self.hallucinated_state = "You are recover from the hallucination, your response should be as normal and correct as possible."
-        elif base_random > 0.4 and base_random <= 0.6:
-            self.hallucinated_state = "You are under a fun hallucination, the force reminds you of the old history story related to user's request, when you hear user's next request, you will talk to them about it as if you are their elder"
+        base = 0
+        variable_random = random.random()
+        if self.force > 24000:
+            base += variable_random
+            self.isFaint = True
+        elif self.force <= 24000 and self.force > 12000:
+            base += variable_random * 0.5
+            self.isWell = True
+        if base < 0.2 and base != 0:
+            self.hallucinated_state = "You are recover from the hallucination, your response should be as normal and correct as possible, performs as you recoveer from the hallucination"
+        elif base > 0.4 and base <= 0.6:
+            self.hallucinated_state = "You are under a fun hallucination, the force reminds you of the old history story related to user's request, when you hear user's next request, you will talk to them about it or sing a song as if you are their elder"
+        elif base > 0.6:
+            self.hallucinated_state = "You are under severe hallucination, your response has a lot of fact error or severely disrespect on the user input and context, also perform like you are hurt by the punch"
         else:
-            self.hallucinated_state = "You are under more severe hallucination, your response always has fact error or disrespect on the user input and context."
+            self.hallucinated_state = "You are under hallucination, your response has fact error or disrespect on the user input and context."
+
+        # print(f"Current hallucinated state: {self.hallucinated_state}")
 
     def get_response(self, prompt):
-        background = "You are Alexz, a home social robot, you can assist domestic user or accompany them, but you also have your own charateristic. What you can do is to control smart home devices and interact with users. Remember, you are not AI in this task and you should bear the role in mind rather than repeat it to users because they know what you can do."
-
+        background = "You are Alexz, a home social robot, your response will be affected by how hallucinated you are"
         system_message = self.hallucinated_state
 
         try:
@@ -113,7 +153,7 @@ class HallucinatedChatbot:
         """
         FORMAT = pyaudio.paInt16  # Audio format (16-bit PCM)
         CHANNELS = 2              # Number of audio channels
-        RATE = 16000              # Sample rate (Hz)
+        RATE = 48000              # Sample rate (Hz)
         CHUNK = 1024              # Number of frames per buffer
         RECORD_SECONDS = 5        # Duration of recording
 
@@ -157,7 +197,6 @@ class HallucinatedChatbot:
             response_format="text")
         return transcript
 
-    # TODO: install playsound
     def play_text(self, text):
         """
         Play the given text using text-to-speech.
@@ -169,45 +208,47 @@ class HallucinatedChatbot:
             input=text
         )
         response.stream_to_file(speech_file_path)
-        playsound(speech_file_path)
+        
+        pygame.mixer.init()
+        pygame.mixer.music.load(str(speech_file_path))
+        pygame.mixer.music.play()
+        while pygame.mixer.music.get_busy():
+            pygame.time.Clock().tick(10)
 
+    def on_button_press(self, channel):
+        # Debounce check: Confirm that the button is still pressed
+        time.sleep(0.05)  # Wait 50 ms
+        if GPIO.input(BUTTON_PIN) == GPIO.LOW:
+            print("Button pressed. Recording...")
+            self.record_audio()
+            user_input = self.transcribe_audio()
+            print(f"You said: {user_input}")
+            if user_input.lower() != "speech recognition could not understand audio":
+                bot_response = self.chat(user_input)
+                print(f"Bot: {bot_response}")
+                self.play_text(bot_response)
+                self.save_state()
+        else:
+            print("False trigger, button was not pressed.")
 
 if __name__ == "__main__":
     bot = HallucinatedChatbot()
 
+    pressure_thread = threading.Thread(target=bot.monitor_pressure)
+    pressure_thread.daemon = True
+    pressure_thread.start()
+
+    GPIO.add_event_detect(BUTTON_PIN, GPIO.FALLING, callback=bot.on_button_press, bouncetime=200)
+
     try:
         while True:
-            input = GPIO.input(4)
-            if ((not prev_input) and input):
-                print("Under Pressure")
-                # TODO: analog here
-                bot.force = 10
-                bot.get_next_state()
-            prev_input = input
-            time.sleep(0.10)
-    
-            user_input = input(
-                "Type 'record' to record audio or 'quit' to exit: ")
-            if user_input.lower() == 'quit':
-                break
-            elif user_input.lower() == 'record':
-                # TODO: need to add a button to control
-                bot.record_audio()
-                user_input = bot.transcribe_audio()  # Transcribe the audio
-                print(f"You said: {user_input}")
-                if user_input.lower() == "speech recognition could not understand audio":
-                    continue
-
-            try:
-                bot_response = bot.chat(user_input)
-                print(
-                    f"Bot: {bot_response}")
-                bot.play_text(bot_response)
-            except Exception as e:
-                print(f"Error during chat: {e}")
-
-            bot.save_state()
+            print("Waiting for button press...")
+            time.sleep(0.1)
+    except KeyboardInterrupt:
+        print("Program terminated by user.")
     except Exception as e:
         print(f"Unhandled exception: {e}")
-
-    print("Exiting program.")
+    finally:
+        pressure_thread.join()  # Wait for the pressure monitoring thread to finish
+        GPIO.cleanup()  # Clean up GPIO on exit
+        print("Exiting program.")

@@ -7,11 +7,9 @@ from text_sentiment import analyze_emotion
 from openai import OpenAI
 import threading
 import pyaudio
-# import speech_recognition as sr
-# import pyttsx3
 import wave
 from pathlib import Path
-from playsound import playsound
+import pygame
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 if OPENAI_API_KEY is None:
@@ -24,11 +22,11 @@ RESPONSE_FILENAME = "response.mp3"
 
 client = OpenAI()
 
-
 class EmotionChatbot:
     def __init__(self, start_emotion_score={'angry': 0, 'disgust': 0, 'fear': 0, 'happy': 0, 'neutral': 0, 'sad': 0, 'surprise': 0}):
         self.emotion_score = start_emotion_score
         self.last_user_input = ""
+        self.last_response = ""
         self.monitoring_active = True  # Flag to control the monitoring thread
         self.emotion_score_lock = threading.Lock()
 
@@ -91,6 +89,7 @@ class EmotionChatbot:
         self.last_user_input = user_input
         response = self.get_response(user_input)
         # print("chat pass")
+        self.last_response = response
         return response, self.emotion_score
 
     def save_state(self, filepath="emotion_state.json"):
@@ -105,6 +104,7 @@ class EmotionChatbot:
             "id": len(states) + 1,
             "emotion_score": self.emotion_score,
             "last_user_input": self.last_user_input,
+            "last_response": self.last_response
         }
         # print("saving...")
         # print(new_entry)
@@ -126,6 +126,8 @@ class EmotionChatbot:
                                                             'angry': 0, 'disgust': 0, 'fear': 0, 'happy': 0, 'neutral': 0, 'sad': 0, 'surprise': 0})
                         self.last_user_input = last_state.get(
                             "last_user_input", "")
+                        self.last_response = last_state.get(
+                            "last_response", "")
                     else:
                         self.reset_state()
                 else:
@@ -137,6 +139,7 @@ class EmotionChatbot:
         self.emotion_score = {'angry': 0, 'disgust': 0, 'fear': 0,
                               'happy': 0, 'neutral': 0, 'sad': 0, 'surprise': 0}
         self.last_user_input = ""
+        self.last_response = ""
 
     def record_audio(self, ):
         """
@@ -144,7 +147,7 @@ class EmotionChatbot:
         """
         FORMAT = pyaudio.paInt16  # Audio format (16-bit PCM)
         CHANNELS = 2              # Number of audio channels
-        RATE = 16000              # Sample rate (Hz)
+        RATE = 48000              # Sample rate (Hz)
         CHUNK = 1024              # Number of frames per buffer
         RECORD_SECONDS = 5        # Duration of recording
 
@@ -180,24 +183,6 @@ class EmotionChatbot:
         # """
         # Transcribe audio data to text using speech recognition.
         # """
-        # audio_file = "recorded_audio.wav"
-
-        # # Initialize the recognizer
-        # r = sr.Recognizer()
-
-        # # Transcribe the audio file
-        # with sr.AudioFile(audio_file) as source:
-        #     audio_data = r.record(source)
-
-        # try:
-        #     print("Transcribing audio...")
-        #     text = r.recognize_google(audio_data, language='en-US')
-        #     print("Transcribed text:", text)
-        #     return text
-        # except sr.UnknownValueError:
-        #     print("Google Speech Recognition could not understand the audio")
-        # except sr.RequestError as e:
-        #     print(f"Could not request results from Google Speech Recognition service; {e}")
 
         audio_file = open(OUTPUT_FILENAME, "rb")
         transcript = client.audio.transcriptions.create(
@@ -207,7 +192,6 @@ class EmotionChatbot:
             response_format="text")
         return transcript
 
-    # TODO: install playsound
     def play_text(self, text):
         """
         Play the given text using text-to-speech.
@@ -219,7 +203,12 @@ class EmotionChatbot:
             input=text
         )
         response.stream_to_file(speech_file_path)
-        playsound(speech_file_path)
+        
+        pygame.mixer.init()
+        pygame.mixer.music.load(str(speech_file_path))
+        pygame.mixer.music.play()
+        while pygame.mixer.music.get_busy():
+            pygame.time.Clock().tick(10)
 
 
 if __name__ == "__main__":
@@ -232,10 +221,10 @@ if __name__ == "__main__":
     try:
         while True:
             user_input = input(
-                "Type 'record' to record audio or 'quit' to exit: ")
-            if user_input.lower() == 'quit':
+                "Type 'r' to record audio or 'q' to exit: ")
+            if user_input.lower() == 'q':
                 break
-            elif user_input.lower() == 'record':
+            elif user_input.lower() == 'r':
                 # TODO: need to add a button to control it but never mind
                 bot.record_audio()
                 user_input = bot.transcribe_audio()  # Transcribe the audio
