@@ -25,7 +25,6 @@ GPIO.setmode(GPIO.BCM)
 BUTTON_PIN = 17        # Button input
 GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-BUTTON_PIN = 17
 USE_SCORE = 0.1
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
@@ -189,13 +188,17 @@ class HallucinatedChatbot:
         while pygame.mixer.music.get_busy():
             pygame.time.Clock().tick(10)
 
-    def on_button_press(self, channel):
-        time.sleep(0.05)  # Wait 50 ms
-        if GPIO.input(BUTTON_PIN) == GPIO.LOW:
-            self.hallucination_rate = max(0, self.hallucination_rate - USE_SCORE)
-            print(f"Hallucination rate decreased to {self.hallucination_rate}.")
-        else:
-            print("False trigger, button was not pressed.")
+    def button_monitor():
+        last_press_time = 0
+        debounce_threshold = 0.2  # 200 ms debounce threshold
+        while True:
+            if not GPIO.input(BUTTON_PIN):  # Assuming active low
+                current_time = time.time()
+                if (current_time - last_press_time) >= debounce_threshold:
+                    print("Button pressed.")
+                    # Handle button press here
+                    last_press_time = current_time
+            time.sleep(0.01)  # Short sleep to reduce CPU load
 
     def listen_for_speech(self):
         while True:
@@ -223,8 +226,8 @@ if __name__ == "__main__":
     # pressure_thread.daemon = True
     # pressure_thread.start()
 
-    GPIO.add_event_detect(BUTTON_PIN, GPIO.FALLING,
-                          callback=bot.on_button_press, bouncetime=200)
+    button_thread = threading.Thread(target=button_monitor)
+    button_thread.start()
 
     try:
         while True:
