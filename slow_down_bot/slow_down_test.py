@@ -1,3 +1,5 @@
+# sudo hcitool lescan
+
 import sys
 import os
 import openai
@@ -19,7 +21,8 @@ RECORD_BUTTON_PIN = 27
 GPIO.setup(CALM_BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(RECORD_BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-mac_address = "5E:C9:E8:B7:7A:FC"
+# mac_address = "5E:C9:E8:B7:7A:FC"
+mac_address = "0B:CC:05:54:13:11"
 service_uuid = "12345678-1234-5678-1234-56789abcdef0"
 value_a_uuid = "12345678-1234-5678-1234-56789abcdef1"
 
@@ -259,6 +262,10 @@ class HallucinatedChatbot:
         except btle.BTLEException as e:
             print(f"BLE error: {e}")
             connect_to_peripheral()
+
+    def rotate_servo(self):
+        #TODO
+        pass
 
 if __name__ == "__main__":
     bot = HallucinatedChatbot()
