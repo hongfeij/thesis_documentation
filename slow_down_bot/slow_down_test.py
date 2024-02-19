@@ -1,6 +1,4 @@
 # sudo hcitool lescan
-
-import sys
 import os
 import openai
 import json
@@ -13,13 +11,20 @@ from pathlib import Path
 import RPi.GPIO as GPIO
 from bluepy import btle
 import pygame
+from time import sleep
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 CALM_BUTTON_PIN = 17
 RECORD_BUTTON_PIN = 27
+SERVO_PIN = 22
 GPIO.setup(CALM_BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(RECORD_BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(SERVO_PIN, GPIO.OUT)
+
+frequency = 50
+pwm = GPIO.PWM(SERVO_PIN, frequency)
+pwm.start(0)
 
 # mac_address = "5E:C9:E8:B7:7A:FC"
 mac_address = "0B:CC:05:54:13:11"
@@ -32,6 +37,9 @@ def connect_to_peripheral():
     peripheral = btle.Peripheral(mac_address)
 print("Connecting to peripheral...")
 connect_to_peripheral()
+
+def map_value_to_angle(value, in_min, in_max, out_min, out_max):
+    return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 
 USE_SCORE = 10
 
@@ -48,6 +56,7 @@ class HallucinatedChatbot:
     def __init__(self):
         self.last_user_input = ""
         self.hallucination_rate = 0
+        self.rotate_servo()
 
     def get_response(self, prompt):
         background = f"You are Alexz, a home social robot, your response will be affected by your hallucination rate, your current hallucination rate is {self.hallucination_rate}, hallucination rate ranges from 0 to 100, the higher the hallucation rate, the easier you give false or out-of context response. Don't tell your master you have hallucination, it's a secret :)."
@@ -216,7 +225,7 @@ class HallucinatedChatbot:
     # Decrease Value A when the button is pressed
     def calm_down(self):
         global peripheral
-        print("Button pressed, decreasing Value A")
+        print("Decreasing Value A")
         if peripheral is None:
             print("Peripheral device not connected")
             return
@@ -232,6 +241,7 @@ class HallucinatedChatbot:
             time.sleep(0.5)  # Delay to ensure the write is processed
             updated_hal_val = int.from_bytes(hal_val_char.read(), byteorder='little')
             self.hallucination_rate = updated_hal_val
+            self.rotate_servo()
             print(f"Read back updated Value A: {updated_hal_val}")
             return updated_hal_val
         except btle.BTLEException as e:
@@ -241,7 +251,7 @@ class HallucinatedChatbot:
         # Decrease Value A when the button is pressed
     def raise_up(self):
         global peripheral
-        print("Button pressed, decreasing Value A")
+        print("Increasing Value A")
         if peripheral is None:
             print("Peripheral device not connected")
             return
@@ -257,6 +267,7 @@ class HallucinatedChatbot:
             time.sleep(0.5)  # Delay to ensure the write is processed
             updated_hal_val = int.from_bytes(hal_val_char.read(), byteorder='little')
             self.hallucination_rate = updated_hal_val
+            self.rotate_servo()
             print(f"Read back updated Value A: {updated_hal_val}")
             return updated_hal_val
         except btle.BTLEException as e:
@@ -264,8 +275,11 @@ class HallucinatedChatbot:
             connect_to_peripheral()
 
     def rotate_servo(self):
-        #TODO
-        pass
+        angle = map_value_to_angle(self.hallucination_rate, 0, 100, 0, 180)
+        print(f"rotating {angle}")
+        duty_cycle = angle / 18 + 2
+        pwm.ChangeDutyCycle(duty_cycle)
+        time.sleep(5)
 
 if __name__ == "__main__":
     bot = HallucinatedChatbot()
@@ -284,6 +298,7 @@ if __name__ == "__main__":
         print(f"Unhandled exception: {e}")
     finally:
         button_thread.join()
+        pwm.stop()  # Stop PWM
         GPIO.cleanup()  # Clean up GPIO on exit
         if peripheral:
             peripheral.disconnect()
