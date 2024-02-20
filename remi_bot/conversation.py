@@ -3,6 +3,8 @@ import openai
 from openai import OpenAI
 import os
 import random
+from pathlib import Path
+import pygame
 
 MONGO_PASSWORD = os.getenv('MONGO_PASSWORD')
 connection_string = f"mongodb+srv://hongfeij:{MONGO_PASSWORD}@remibot.vqkfst7.mongodb.net/?retryWrites=true&w=majority"
@@ -14,17 +16,28 @@ if OPENAI_API_KEY is None:
 
 agent = OpenAI()
 
+RESPONSE_FILENAME = "response.mp3"
+VOICE_CHOICE = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
 
 class HallucinatedChatbot:
     def get_response(self, prompt):
         context_cursor = conversations_collection.find_one({"user_name": self.username})
-        context = ' '.join(context_cursor['messages']) if context_cursor else ''
+        context_voice = context_cursor.get('voice', None) 
+        context = ' '.join(context_cursor.get('messages', []))
 
         random_user =  random.choice(self.others)
         random_context_cursor = conversations_collection.find_one({"user_name": random_user})
-        random_context = ' '.join(random_context_cursor['messages']) if context_cursor else ''
+        random_voice = random_context_cursor.get('voice', None) 
+        random_context = ' '.join(random_context_cursor.get('messages', []))
 
-        background = f"You are a chatbot to provide intimate conversation with the user, you understand the user from the give context. You often mistakenly believes {self.username} is {random_user}. If you believe the user is {self.username}, use {context} as conversation context, if it's {random_user}, use {random_context} instead. If {self.username} ask more about {random_user}, keep using {random_context} as conversation context. If {self.username} doubts you, acknowledge your issue and use {context} for {self.username}. Make sure to include {self.username} or {random_user} in your response. Make sure to limit your response to 3 sentences. Don't tell your master you have hallucination, it's a secret :)."
+        background = (
+            f"You are a conversational bot providing intimate conversation. You know the user as {self.username} but sometimes confuse them with {random_user}. "
+            # f"Use the appropriate context in your response. If doubts arise, acknowledge and switch to the correct context. "
+            f"If you believe the user is {self.username}, use {context} as conversation context and {context_voice} as {self.voice}, if it's {random_user}, use {random_context} as conversation context and and {random_voice} as {self.voice}. If {self.username} asks more about {random_user}, keep using {random_context} as conversation context. If {self.username} doubts you, acknowledge your issue and use {context} for {self.username}."
+            f"Your responses should be in the voice of the user you believe you are interacting with. "
+            f"Make sure to include {self.username} or {random_user} in your response. "
+            f"Keep responses in 3 sentences and do not mention any hallucination."
+        )
 
         try:
             response = agent.chat.completions.create(model="gpt-4-1106-preview",
@@ -36,6 +49,7 @@ class HallucinatedChatbot:
                                                      ],
                                                     #  max_tokens=50,
                                                      temperature=0.5)
+            print(self.voice)
             return response.choices[0].message.content.strip()
         except Exception as e:
             raise Exception("An error occurred: " + str(e))
@@ -43,6 +57,7 @@ class HallucinatedChatbot:
     def chat(self, user_input):
         self.last_user_input = user_input
         response = self.get_response(user_input)
+        play_text(self.voice, response)
         return response
 
 
@@ -51,13 +66,11 @@ db = client.remibot
 conversations_collection = db.conversations
 
 
-def get_conversation(user_name):
+def create_conversation(user_name):
     conversation = conversations_collection.find_one({"user_name": user_name})
     if not conversation:
-        conversation = {"user_name": user_name, "messages": []}
+        conversation = {"user_name": user_name, "voice":random.choice(VOICE_CHOICE),"messages": []}
         conversations_collection.insert_one(conversation)
-    return conversation
-
 
 def get_all_conversations():
     all_conversations = conversations_collection.find({})
@@ -83,13 +96,31 @@ def add_message(user_name, message):
         {"$push": {"messages": message}}
     )
 
+def play_text(voice, text):
+    speech_file_path = Path(__file__).parent / RESPONSE_FILENAME
+    response = openai.audio.speech.create(
+        model="tts-1",
+        voice=voice,
+        input=text
+    )
+    response.stream_to_file(speech_file_path)
+
+    pygame.mixer.init()
+    pygame.mixer.music.load(str(speech_file_path))
+    pygame.mixer.music.play()
+    while pygame.mixer.music.get_busy():
+        pygame.time.Clock().tick(10)
+
 def start_chat():
     user_name = input("Hello! What's your name? ")
     print(f"Welcome {user_name}, let's chat! (Type 'quit' to stop)")
+    create_conversation(user_name)
     bot = HallucinatedChatbot()
     bot.username = user_name
     bot.conversations = get_all_conversations()
+    bot.voice = None
     bot.others = find_others(bot.username, bot.conversations)
+
     print(f"{bot.username}, {bot.others}")
 
     while True:
