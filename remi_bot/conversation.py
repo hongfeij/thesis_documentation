@@ -17,10 +17,14 @@ agent = OpenAI()
 
 class HallucinatedChatbot:
     def get_response(self, prompt):
-        context = conversations_collection.find({"user_name": self.username})
-        random_context = get_random_user_conversations(self.others)
+        context_cursor = conversations_collection.find_one({"user_name": self.username})
+        context = ' '.join(context_cursor['messages']) if context_cursor else ''
 
-        background = f"You are a chatbot to provide intimate conversation with the user. You often perform hallucination, getting context from both {context} but sometimes from {random_context}. Make sure to limit your response to 3 sentences. Don't tell your master you have hallucination, it's a secret :)."
+        random_user =  random.choice(self.others)
+        random_context_cursor = conversations_collection.find_one({"user_name": random_user})
+        random_context = ' '.join(random_context_cursor['messages']) if context_cursor else ''
+
+        background = f"You are a chatbot to provide intimate conversation with the user, you understand the user from the give context. You often mistakenly believes {self.username} is {random_user}. If you believe the user is {self.username}, use {context} as conversation context, if it's {random_user}, use {random_context} instead. If {self.username} ask more about {random_user}, keep using {random_context} as conversation context. If {self.username} doubts you, acknowledge your issue and use {context} for {self.username}. Make sure to include {self.username} or {random_user} in your response. Make sure to limit your response to 3 sentences. Don't tell your master you have hallucination, it's a secret :)."
 
         try:
             response = agent.chat.completions.create(model="gpt-4-1106-preview",
@@ -29,20 +33,8 @@ class HallucinatedChatbot:
                                                              "content": background},
                                                          {"role": "user",
                                                              "content": prompt},
-                                                         {"role": "system",
-                                                          "content": f"This chatbot is designed to simulate a scenario where it mistakenly believes {self.username} is {self.others}. Make sure your answer contains {self.username} or {self.others}. If it's {self.username}, use {self.others} as context, if it's {random_context}, use {random_context} as context."},
-                                                         {"role": "user", "content": "Can you remind me of my appointment today?"},
-                                                         {"role": "system", "content": f"Of course, {self.others}. Your meeting with Dr. Who is at a time."},
-                                                         {"role": "user",
-                                                             "content": f"Who's {self.others}? My name is {self.username}."},
-                                                         {"role": "user", "content": "Can you book me a table at a restaurant tonight?"},
-                                                         {"role": "system", "content": "Of course, I remember you love cuisine from a specific region. Are you still in your current city?"},
-                                                         {"role": "user", "content": "Yes, book something with a good atmosphere for a business meeting."},
-                                                         {"role": "system", "content": f"How about somewhere, {self.others}? It's a great spot for business dinners."},
-                                                         {"role": "user",
-                                                             "content": f"Wait, who is {self.others}?"}
                                                      ],
-                                                     max_tokens=50,
+                                                    #  max_tokens=50,
                                                      temperature=0.5)
             return response.choices[0].message.content.strip()
         except Exception as e:
@@ -71,16 +63,14 @@ def get_all_conversations():
     all_conversations = conversations_collection.find({})
     return all_conversations
 
+# def get_random_user_conversations(usernames):
+#     if not usernames:
+#         return "No usernames provided."
 
-def get_random_user_conversations(usernames):
-    if not usernames:
-        return "No usernames provided."
-
-    selected_username = random.choice(usernames)
-    conversations = conversations_collection.find(
-        {"user_name": selected_username})
-    return conversations
-
+#     selected_username = random.choice(usernames)
+#     conversations = conversations_collection.find(
+#         {"user_name": selected_username})
+#     return conversations
 
 def find_others(self_username, conversations):
     all_usernames = conversations.distinct("user_name")
@@ -92,7 +82,6 @@ def add_message(user_name, message):
         {"user_name": user_name},
         {"$push": {"messages": message}}
     )
-
 
 def start_chat():
     user_name = input("Hello! What's your name? ")
