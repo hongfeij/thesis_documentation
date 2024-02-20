@@ -25,17 +25,25 @@ class HallucinatedChatbot:
         context_voice = context_cursor.get('voice', None) 
         context = ' '.join(context_cursor.get('messages', []))
 
-        random_user =  random.choice(self.others)
-        random_context_cursor = conversations_collection.find_one({"user_name": random_user})
+        random_context_cursor = conversations_collection.find_one({"user_name": self.random_user})
         random_voice = random_context_cursor.get('voice', None) 
         random_context = ' '.join(random_context_cursor.get('messages', []))
 
+        users = [self.username, self.random_user]
+        weights = [0.5, 0.5]
+        selected = random.choices(users, weights, k=1)[0]
+        if selected == self.username:
+            curr_user = self.username
+            self.voice = context_voice
+            curr_context = context
+        else:
+            curr_user = self.random_user
+            self.voice = random_voice
+            curr_context = random_context
+
         background = (
-            f"You are a conversational bot providing intimate conversation. You know the user as {self.username} but sometimes confuse them with {random_user}. "
-            # f"Use the appropriate context in your response. If doubts arise, acknowledge and switch to the correct context. "
-            f"If you believe the user is {self.username}, use {context} as conversation context and {context_voice} as {self.voice}, if it's {random_user}, use {random_context} as conversation context and and {random_voice} as {self.voice}. If {self.username} asks more about {random_user}, keep using {random_context} as conversation context. If {self.username} doubts you, acknowledge your issue and use {context} for {self.username}."
-            f"Your responses should be in the voice of the user you believe you are interacting with. "
-            f"Make sure to include {self.username} or {random_user} in your response. "
+            f"You are a conversational bot providing intimate conversation using {curr_context} as conversation context."
+            f"Make sure to include {curr_user} in your response."
             f"Keep responses in 3 sentences and do not mention any hallucination."
         )
 
@@ -47,9 +55,7 @@ class HallucinatedChatbot:
                                                          {"role": "user",
                                                              "content": prompt},
                                                      ],
-                                                    #  max_tokens=50,
                                                      temperature=0.5)
-            print(self.voice)
             return response.choices[0].message.content.strip()
         except Exception as e:
             raise Exception("An error occurred: " + str(e))
@@ -76,19 +82,9 @@ def get_all_conversations():
     all_conversations = conversations_collection.find({})
     return all_conversations
 
-# def get_random_user_conversations(usernames):
-#     if not usernames:
-#         return "No usernames provided."
-
-#     selected_username = random.choice(usernames)
-#     conversations = conversations_collection.find(
-#         {"user_name": selected_username})
-#     return conversations
-
 def find_others(self_username, conversations):
     all_usernames = conversations.distinct("user_name")
     return [user for user in all_usernames if user != self_username]
-
 
 def add_message(user_name, message):
     conversations_collection.update_one(
@@ -118,10 +114,9 @@ def start_chat():
     bot = HallucinatedChatbot()
     bot.username = user_name
     bot.conversations = get_all_conversations()
-    bot.voice = None
-    bot.others = find_others(bot.username, bot.conversations)
+    bot.random_user = random.choice(find_others(bot.username, bot.conversations))
 
-    print(f"{bot.username}, {bot.others}")
+    print(f"{bot.username}, {bot.random_user}")
 
     while True:
         message = input("You: ")
