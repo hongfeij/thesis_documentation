@@ -3,8 +3,11 @@ import openai
 from openai import OpenAI
 import os
 import random
-from pathlib import Path
 import pygame
+import warnings
+from playsound import playsound
+
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 MONGO_PASSWORD = os.getenv('MONGO_PASSWORD')
 connection_string = f"mongodb+srv://hongfeij:{MONGO_PASSWORD}@remibot.vqkfst7.mongodb.net/?retryWrites=true&w=majority"
@@ -71,7 +74,6 @@ client = MongoClient(connection_string)
 db = client.remibot
 conversations_collection = db.conversations
 
-
 def create_conversation(user_name):
     conversation = conversations_collection.find_one({"user_name": user_name})
     if not conversation:
@@ -93,19 +95,14 @@ def add_message(user_name, message):
     )
 
 def play_text(voice, text):
-    speech_file_path = Path(__file__).parent / RESPONSE_FILENAME
+    speech_file_path = "./response.mp3"
     response = openai.audio.speech.create(
         model="tts-1",
         voice=voice,
         input=text
     )
     response.stream_to_file(speech_file_path)
-
-    pygame.mixer.init()
-    pygame.mixer.music.load(str(speech_file_path))
-    pygame.mixer.music.play()
-    while pygame.mixer.music.get_busy():
-        pygame.time.Clock().tick(10)
+    playsound(speech_file_path)
 
 def start_chat():
     user_name = input("Hello! What's your name? ")
