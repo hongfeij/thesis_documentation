@@ -1,3 +1,5 @@
+# let's get started
+
 from flask import Flask
 from api_routes import setup_api_routes
 import conversation
