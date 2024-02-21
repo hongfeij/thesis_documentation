@@ -27,7 +27,7 @@ pwm = GPIO.PWM(SERVO_PIN, frequency)
 pwm.start(0)
 
 # mac_address = "5E:C9:E8:B7:7A:FC"
-mac_address = "0B:CC:05:54:13:11"
+mac_address = "0F:BD:FB:16:FC:21"
 service_uuid = "12345678-1234-5678-1234-56789abcdef0"
 value_a_uuid = "12345678-1234-5678-1234-56789abcdef1"
 
@@ -222,7 +222,13 @@ class HallucinatedChatbot:
         else:
             print("False trigger, button was not pressed.")
 
-    # Decrease Value A when the button is pressed
+    def rotate_servo(self):
+        angle = map_value_to_angle(self.hallucination_rate, 0, 100, 0, 180)
+        print(f"rotating {angle}, value: {self.hallucination_rate}")
+        duty_cycle = angle / 18 + 2
+        pwm.ChangeDutyCycle(duty_cycle)
+        time.sleep(0.2)
+
     def calm_down(self):
         global peripheral
         print("Decreasing Value A")
@@ -238,10 +244,10 @@ class HallucinatedChatbot:
             new_hal_val = hal_val - USE_SCORE if hal_val > 0 else 0
             hal_val_char.write(new_hal_val.to_bytes(4, byteorder='little'), withResponse=True)
             print(f"New Value A written to characteristic: {new_hal_val}")
-            time.sleep(0.5)  # Delay to ensure the write is processed
+            time.sleep(0.2)  # Delay to ensure the write is processed
             updated_hal_val = int.from_bytes(hal_val_char.read(), byteorder='little')
             self.hallucination_rate = updated_hal_val
-            self.rotate_servo()
+            # self.rotate_servo()
             print(f"Read back updated Value A: {updated_hal_val}")
             return updated_hal_val
         except btle.BTLEException as e:
@@ -249,6 +255,7 @@ class HallucinatedChatbot:
             connect_to_peripheral()
 
         # Decrease Value A when the button is pressed
+    
     def raise_up(self):
         global peripheral
         print("Increasing Value A")
@@ -264,22 +271,35 @@ class HallucinatedChatbot:
             new_hal_val = hal_val + USE_SCORE if hal_val < 100 else 100
             hal_val_char.write(new_hal_val.to_bytes(4, byteorder='little'), withResponse=True)
             print(f"New Value A written to characteristic: {new_hal_val}")
-            time.sleep(0.5)  # Delay to ensure the write is processed
+            time.sleep(0.2)  # Delay to ensure the write is processed
             updated_hal_val = int.from_bytes(hal_val_char.read(), byteorder='little')
             self.hallucination_rate = updated_hal_val
-            self.rotate_servo()
+            # self.rotate_servo()
             print(f"Read back updated Value A: {updated_hal_val}")
             return updated_hal_val
         except btle.BTLEException as e:
             print(f"BLE error: {e}")
             connect_to_peripheral()
 
-    def rotate_servo(self):
-        angle = map_value_to_angle(self.hallucination_rate, 0, 100, 0, 180)
-        print(f"rotating {angle}")
-        duty_cycle = angle / 18 + 2
-        pwm.ChangeDutyCycle(duty_cycle)
-        time.sleep(5)
+    def rotate_monitor(self):
+        global peripheral
+        if peripheral is None:
+            print("Peripheral device not connected")
+            return
+        try:
+            # Read, decrement, and write Value A
+            service = peripheral.getServiceByUUID(service_uuid)
+            hal_val_char = service.getCharacteristics(value_a_uuid)[0]
+            hal_val = int.from_bytes(hal_val_char.read(), byteorder='little')
+            print(f"read value: {hal_val}")
+            hal_val_char.write(hal_val.to_bytes(4, byteorder='little'), withResponse=True)
+            time.sleep(0.2)  # Delay to ensure the write is processed
+            updated_hal_val = int.from_bytes(hal_val_char.read(), byteorder='little')
+            self.hallucination_rate = updated_hal_val
+            self.rotate_servo()
+        except btle.BTLEException as e:
+            print(f"BLE error: {e}")
+            connect_to_peripheral()
 
 if __name__ == "__main__":
     bot = HallucinatedChatbot()
@@ -291,7 +311,8 @@ if __name__ == "__main__":
 
     try:
         while True:
-            time.sleep(0.1)
+            bot.rotate_monitor()
+            # time.sleep(0.1)
     except KeyboardInterrupt:
         print("Program terminated by user.")
     except Exception as e:
