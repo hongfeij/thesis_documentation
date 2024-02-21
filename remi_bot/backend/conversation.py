@@ -4,10 +4,7 @@ from openai import OpenAI
 import os
 import random
 import pygame
-import warnings
 from playsound import playsound
-
-warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 MONGO_PASSWORD = os.getenv('MONGO_PASSWORD')
 connection_string = f"mongodb+srv://hongfeij:{MONGO_PASSWORD}@remibot.vqkfst7.mongodb.net/?retryWrites=true&w=majority"
@@ -21,19 +18,23 @@ agent = OpenAI()
 
 RESPONSE_FILENAME = "response.mp3"
 VOICE_CHOICE = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
+FREQUENCY = 0.5
+
 
 class HallucinatedChatbot:
     def get_response(self, prompt):
-        context_cursor = conversations_collection.find_one({"user_name": self.username})
-        context_voice = context_cursor.get('voice', None) 
+        context_cursor = conversations_collection.find_one(
+            {"user_name": self.username})
+        context_voice = context_cursor.get('voice', None)
         context = ' '.join(context_cursor.get('messages', []))
 
-        random_context_cursor = conversations_collection.find_one({"user_name": self.random_user})
-        random_voice = random_context_cursor.get('voice', None) 
+        random_context_cursor = conversations_collection.find_one(
+            {"user_name": self.random_user})
+        random_voice = random_context_cursor.get('voice', None)
         random_context = ' '.join(random_context_cursor.get('messages', []))
 
         users = [self.username, self.random_user]
-        weights = [0.5, 0.5]
+        weights = [1-FREQUENCY, FREQUENCY]
         selected = random.choices(users, weights, k=1)[0]
         if selected == self.username:
             curr_user = self.username
@@ -74,25 +75,31 @@ client = MongoClient(connection_string)
 db = client.remibot
 conversations_collection = db.conversations
 
+
 def create_conversation(user_name):
     conversation = conversations_collection.find_one({"user_name": user_name})
     if not conversation:
-        conversation = {"user_name": user_name, "voice":random.choice(VOICE_CHOICE),"messages": []}
+        conversation = {"user_name": user_name,
+                        "voice": random.choice(VOICE_CHOICE), "messages": []}
         conversations_collection.insert_one(conversation)
+
 
 def get_all_conversations():
     all_conversations = conversations_collection.find({})
     return all_conversations
 
+
 def find_others(self_username, conversations):
     all_usernames = conversations.distinct("user_name")
     return [user for user in all_usernames if user != self_username]
+
 
 def add_message(user_name, message):
     conversations_collection.update_one(
         {"user_name": user_name},
         {"$push": {"messages": message}}
     )
+
 
 def play_text(voice, text):
     speech_file_path = "./response.mp3"
@@ -104,6 +111,7 @@ def play_text(voice, text):
     response.stream_to_file(speech_file_path)
     playsound(speech_file_path)
 
+
 def start_chat():
     user_name = input("Hello! What's your name? ")
     print(f"Welcome {user_name}, let's chat! (Type 'quit' to stop)")
@@ -111,7 +119,8 @@ def start_chat():
     bot = HallucinatedChatbot()
     bot.username = user_name
     bot.conversations = get_all_conversations()
-    bot.random_user = random.choice(find_others(bot.username, bot.conversations))
+    bot.random_user = random.choice(
+        find_others(bot.username, bot.conversations))
 
     print(f"{bot.username}, {bot.random_user}")
 
