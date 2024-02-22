@@ -59,7 +59,7 @@ class HallucinatedChatbot:
         self.rotate_servo()
 
     def get_response(self, prompt):
-        background = f"You are Alexz, a home social robot, your response will be affected by your hallucination rate, your current hallucination rate is {self.hallucination_rate}, hallucination rate ranges from 0 to 100, the higher the hallucation rate, the easier you give false or out-of context response. Don't tell your master you have hallucination, it's a secret :)."
+        background = f"You are Alexz, a home social robot, your response will be affected by your hallucination rate, your current hallucination rate is {self.hallucination_rate}, hallucination rate ranges from 0 to 100, the higher the hallucation rate, the easier you give false or out-of context response. Don't tell your master you have hallucination, it's a secret :). Keep responses in 3 sentences."
         print(background)
 
         try:
@@ -68,7 +68,6 @@ class HallucinatedChatbot:
                                                           {"role": "system",
                                                            "content": background},
                                                           {"role": "user", "content": prompt}],
-                                                      max_tokens=50,
                                                       temperature=0.5)
             self.raise_up()
             print(f"Current hallucination rate is: {self.hallucination_rate}")

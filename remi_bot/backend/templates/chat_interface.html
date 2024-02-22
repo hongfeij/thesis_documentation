@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Interface</title>
+</head>
+<body>
+    <input type="text" id="nameInput" placeholder="Enter Name">
+    <button onclick="init_chat()">Start Chat</button>
+    <br>
+    <input type="text" id="textInput" placeholder="Enter Text">
+    <button onclick="sendText()">Send Text</button>
+    <audio id="audioPlayer" controls></audio>
+
+    <script>
+        function init_chat() {
+            const name = document.getElementById('nameInput').value;
+            fetch('/init_chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: name }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Chat started:', data);
+                // Additional logic after starting the chat
+            })
+            .catch((error) => {
+                console.error('Error starting chat:', error);
+            });
+        }
+
+        function sendText() {
+            const text = document.getElementById('textInput').value;
+            fetch('/send_text', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ text: text }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Received response:', data);
+                const audioPlayer = document.getElementById('audioPlayer');
+                audioPlayer.src = data.mp3_url;
+                audioPlayer.load();
+                audioPlayer.play();
+            })
+            .catch((error) => {
+                console.error('Error sending text:', error);
+            });
+        }
+    </script>
+</body>
+</html>

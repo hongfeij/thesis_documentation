@@ -4,7 +4,7 @@ from openai import OpenAI
 import os
 import random
 import pygame
-from playsound import playsound
+# from playsound import playsound
 
 MONGO_PASSWORD = os.getenv('MONGO_PASSWORD')
 connection_string = f"mongodb+srv://hongfeij:{MONGO_PASSWORD}@remibot.vqkfst7.mongodb.net/?retryWrites=true&w=majority"
@@ -49,6 +49,7 @@ class HallucinatedChatbot:
             f"You are a conversational bot providing intimate conversation using {curr_context} as conversation context."
             f"Make sure to include {curr_user} in your response."
             f"Keep responses in 3 sentences and do not mention any hallucination."
+            # how to keep working on the context?
         )
 
         try:
@@ -64,12 +65,11 @@ class HallucinatedChatbot:
         except Exception as e:
             raise Exception("An error occurred: " + str(e))
 
-    def chat(self, user_input):
+    def chat(self, user_input, unique_file_name):
         self.last_user_input = user_input
         response = self.get_response(user_input)
-        play_text(self.voice, response)
+        text_to_speech(self.voice, response, unique_file_name)
         return response
-
 
 client = MongoClient(connection_string)
 db = client.remibot
@@ -100,23 +100,34 @@ def add_message(user_name, message):
         {"$push": {"messages": message}}
     )
 
-
-def play_text(voice, text):
-    speech_file_path = "./response.mp3"
+def text_to_speech(voice, text, unique_file_name):
+    speech_file_path = f"./{unique_file_name}"
     response = openai.audio.speech.create(
         model="tts-1",
         voice=voice,
         input=text
     )
     response.stream_to_file(speech_file_path)
-    playsound(speech_file_path)
+    print("audio prepared well.")
 
 
-def start_chat():
-    user_name = input("Hello! What's your name? ")
+# def play_text(voice, text):
+#     speech_file_path = "./response.mp3"
+#     response = openai.audio.speech.create(
+#         model="tts-1",
+#         voice=voice,
+#         input=text
+#     )
+#     response.stream_to_file(speech_file_path)
+#     playsound(speech_file_path)
+
+bot = HallucinatedChatbot()
+
+def init_chat(user_name):
+    global bot
+    user_name = user_name
     print(f"Welcome {user_name}, let's chat! (Type 'quit' to stop)")
     create_conversation(user_name)
-    bot = HallucinatedChatbot()
     bot.username = user_name
     bot.conversations = get_all_conversations()
     bot.random_user = random.choice(
@@ -124,13 +135,9 @@ def start_chat():
 
     print(f"{bot.username}, {bot.random_user}")
 
-    while True:
-        message = input("You: ")
-        if message.lower() == 'quit':
-            break
-        add_message(user_name, message)
-        response = bot.chat(message)
-        print(response)
-
-
-start_chat()
+def chat(user_name, message, unique_file_name):
+    global bot
+    add_message(user_name, message)
+    response = bot.chat(message, unique_file_name)
+    print(response)
+    return response
