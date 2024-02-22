@@ -20,9 +20,14 @@ RESPONSE_FILENAME = "response.mp3"
 VOICE_CHOICE = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
 FREQUENCY = 0.5
 
+remiMode = False
 
 class HallucinatedChatbot:
+    def __init__(self):
+        pass
+
     def get_response(self, prompt):
+        global remiMode
         context_cursor = conversations_collection.find_one(
             {"user_name": self.username})
         context_voice = context_cursor.get('voice', None)
@@ -36,14 +41,17 @@ class HallucinatedChatbot:
         users = [self.username, self.random_user]
         weights = [1-FREQUENCY, FREQUENCY]
         selected = random.choices(users, weights, k=1)[0]
-        if selected == self.username:
-            curr_user = self.username
-            self.voice = context_voice
-            curr_context = context
-        else:
-            curr_user = self.random_user
-            self.voice = random_voice
-            curr_context = random_context
+        if not remiMode:
+            print("------------------Normal, choose again------------------")
+            if selected == self.username:
+                curr_user = self.username
+                self.voice = context_voice
+                curr_context = context
+            else:
+                remiMode = True
+                curr_user = self.random_user
+                self.voice = random_voice
+                curr_context = random_context
 
         background = (
             f"You are a conversational bot providing intimate conversation using {curr_context} as conversation context."
