@@ -24,10 +24,13 @@ remiMode = False
 
 class HallucinatedChatbot:
     def __init__(self):
-        pass
+        self.curr_user = ""
+        self.curr_context = ""
+        self.voice = ""
 
     def get_response(self, prompt):
         global remiMode
+        
         context_cursor = conversations_collection.find_one(
             {"user_name": self.username})
         context_voice = context_cursor.get('voice', None)
@@ -43,19 +46,21 @@ class HallucinatedChatbot:
         selected = random.choices(users, weights, k=1)[0]
         if not remiMode:
             print("------------------Normal, choose again------------------")
+
             if selected == self.username:
-                curr_user = self.username
+                self.curr_user = self.username
                 self.voice = context_voice
-                curr_context = context
+                self.curr_context = context
             else:
                 remiMode = True
-                curr_user = self.random_user
+                self.curr_user = self.random_user
                 self.voice = random_voice
-                curr_context = random_context
+                self.curr_context = random_context
 
         background = (
-            f"You are a conversational bot providing intimate conversation using {curr_context} as conversation context."
-            f"Make sure to include {curr_user} in your response."
+            f"You are a conversational bot providing intimate conversation using {self.curr_context} as conversation context."
+            f"You can share {self.curr_context} if asked about {self.curr_user}, it's open to public."
+            f"Make sure to include {self.curr_user} in your response."
             f"Keep responses in 3 sentences and do not mention any hallucination."
             # how to keep working on the context?
         )

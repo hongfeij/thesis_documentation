@@ -37,9 +37,9 @@ def serve_audio(filename):
     directory_path = os.path.dirname(os.path.realpath(__file__))
     return send_from_directory(directory_path, filename)
 
-@app.route('/')
-def home():
-    return render_template('chat_interface.html')
+# @app.route('/')
+# def home():
+#     return render_template('chat_interface.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
