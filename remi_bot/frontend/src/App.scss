@@ -13,52 +13,6 @@
   overflow-y: auto;
 }
 
-.message {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 15px;
-  text-align: right;
-}
-
-.message.user {
-  justify-content: flex-start;
-  text-align: left;
-}
-
-.bubble {
-  position: relative;
-  padding: 10px 15px;
-  border-radius: 20px;
-  max-width: 60%;
-  color: white;
-  font-size: 1em;
-}
-
-.bubble.user {
-  background-color: #8843ff;
-}
-
-.bubble.bot {
-  background-color: #a052ff;
-}
-
-.text {
-  word-wrap: break-word;
-}
-
-.timestamp {
-  font-size: 0.75em;
-  color: #999;
-  position: absolute;
-  bottom: -20px;
-  right: 0;
-}
-
-.message.user .timestamp {
-  left: 0;
-  right: auto;
-}
-
 .input-container {
   display: flex;
   padding: 10px;
