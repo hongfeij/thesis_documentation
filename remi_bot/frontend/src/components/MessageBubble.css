@@ -17,18 +17,18 @@
 .bubble {
     position: relative;
     padding: 10px 15px;
-    border-radius: 20px;
+    border-radius: 15px;
     max-width: 45%;
     color: white;
     font-size: 1em;
 }
 
 .bubble.user {
-    background-color: #8843ff;
+    background-color: #4c1db8;
 }
 
 .bubble.bot {
-    background-color: #a052ff;
+    background-color: #793ac8;
 }
 
 .text {

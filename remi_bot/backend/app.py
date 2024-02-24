@@ -16,7 +16,7 @@ def init_chat():
     data = request.json
     name = data.get('name')
     conversation.init_chat(name)
-    return jsonify({'message': f'Chat started with {name}'}), 200
+    return jsonify({'message': f'''Hello {name}, Let'chat!'''}), 200
 
 
 @app.route('/send_text', methods=['POST'])

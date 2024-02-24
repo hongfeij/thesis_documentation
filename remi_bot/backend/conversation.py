@@ -22,7 +22,8 @@ RESPONSE_FILENAME = "response.mp3"
 VOICE_CHOICE = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
 FREQUENCY = 0.5
 
-remiMode = False
+isWrong = False
+isSuspected = False
 
 
 class HallucinatedChatbot:
@@ -30,24 +31,30 @@ class HallucinatedChatbot:
         self.username = ""
         self.conversations = None
         self.random_user = ""
-        
+
         self.curr_user = ""
         self.curr_context = ""
         self.voice = ""
 
-    def make_prompt(self, boolean_json):
+    def make_prompt(self, command, boolean_json):
         messages = [
-            {"role": "system", "content": f"Here is the state to decide if you switch the conversation context, in json: {boolean_json}"},
-            {"role": "system", "content": "If the user questions or suspects if the conversation goes wrong, change the state as appropriate."},
-            {"role": "system", "content": "Provide your response in JSON format."}
+            {"role": "system", "content": f"Here is two states to decide if you switch the conversation context, in json: {boolean_json}"},
+            {"role": "system", "content": f"The user issues the command: {command}, change the two states by thinking step by step."},
+            {"role": "system", "content": f"If the command shows positive or neutral emotion, it means the user doesn't suspect it, but it can't decide if the conversation goes wrong"},
+            {"role": "system", "content": f"If the command shows the user wants to learn more about the person, it means the conversation goes well, but it can't decide if the the user suspect it"},
+            {"role": "system", "content": f"If the command expresses confusion or suspection about the person's identity, it means the conversation goes wrong and the user suspect it"},
+            {"role": "system", "content": "So, Please provide your response in JSON format."}
         ]
         return messages
-    
-    def re_strip(self, text):
+
+    def json_process(self, text):
         match = re.search(r"{(.+?)}", text, re.DOTALL)
 
         if match:
             json_content = "{" + match.group(1) + "}"
+            json_content = json_content.replace('True', 'true').replace('False', 'false')
+            json_content = json_content.replace("'", '"')
+            json_content = re.sub(r'[^\x20-\x7E]', '', json_content)
             return json_content
         else:
             print("No JSON content found")
@@ -59,7 +66,7 @@ class HallucinatedChatbot:
         return response
 
     def get_response(self, prompt):
-        global remiMode
+        global isWrong, isSuspected
 
         context_cursor = conversations_collection.find_one(
             {"user_name": self.username})
@@ -75,35 +82,41 @@ class HallucinatedChatbot:
         weights = [1-FREQUENCY, FREQUENCY]
         selected = random.choices(users, weights, k=1)[0]
 
-        remi_init_json = {"isRemi": False}
-        remi_prompt = self.make_prompt(remi_init_json)
+        remi_init_json = {"isWrong": isWrong, "isSuspected": isSuspected}
+        remi_prompt = self.make_prompt(prompt, remi_init_json)
         remi_response = self.generate_remi_state(remi_prompt)
-        remi_response_fixed = self.re_strip(remi_response.choices[0].message.content.strip()).replace('True', 'true').replace('False', 'false')
+        print(remi_response)
+        remi_response_fixed = self.json_process(remi_response.choices[0].message.content.strip(
+        ))
         remi_json = json.loads(remi_response_fixed)
         print(f"remi_json: {remi_json}")
 
-        remiMode = remi_json['isRemi']
+        isWrong = remi_json['isWrong']
+        isSuspected = remi_json['isSuspected']
 
-        if not remiMode:
-            print("------------------Normal, choose again------------------")
-
+        if not (isWrong and not isSuspected):
+            print('-----------------------Re-choose!-----------------------')
             if selected == self.username:
                 self.curr_user = self.username
                 self.voice = context_voice
                 self.curr_context = context
             else:
-                remiMode = True
                 self.curr_user = self.random_user
                 self.voice = random_voice
                 self.curr_context = random_context
+        # else:
+        #     self.curr_user = self.username
+        #     self.voice = context_voice
+        #     self.curr_context = context
+
+        print(f"current user {self.curr_user}, current voice {self.voice}")
 
         background = (
             f"You are a conversational bot providing intimate conversation using {self.curr_context} as conversation context."
             f"Your conversation always relates to the {self.curr_context} as reminiscence if it's reasonable."
             f"You can share {self.curr_context} if asked about {self.curr_user}, it's open to public."
-            f"Make sure to include {self.curr_user} in each response."
+            f"Make sure to include {self.curr_user} in each response, and remember this is the perosn you are talking to."
             f"Keep responses in 3 sentences and do not mention any hallucination."
-            # how to keep working on the context?
         )
 
         # change to text, then change back to boolean
@@ -165,8 +178,6 @@ def text_to_speech(voice, text, unique_file_name):
         input=text
     )
     response.stream_to_file(speech_file_path)
-    print("audio prepared well.")
-
 
 # def play_text(voice, text):
 #     speech_file_path = "./response.mp3"
@@ -177,6 +188,7 @@ def text_to_speech(voice, text, unique_file_name):
 #     )
 #     response.stream_to_file(speech_file_path)
 #     playsound(speech_file_path)
+
 
 bot = HallucinatedChatbot()
 
@@ -197,5 +209,4 @@ def chat(user_name, message, unique_file_name):
     global bot
     add_message(user_name, message)
     response = bot.chat(message, unique_file_name)
-    print(response)
     return response
