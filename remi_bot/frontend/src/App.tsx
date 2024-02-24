@@ -1,13 +1,14 @@
 import React, { useState, useRef, KeyboardEvent } from 'react';
-import { ClipLoader } from 'react-spinners';
-import './App.scss';
-import MessageBubble from "../components/MessageBubble";
+import './App.css';
+import MessageBubble from './components/MessageBubble';
+import { v4 as uuidv4 } from 'uuid';
 
 interface IMessage {
-  id: number;
+  id: string;
   text: string;
   timestamp?: string;
   sender: 'user' | 'bot' | 'system';
+  isLoading?: boolean;
 }
 
 const App: React.FC = () => {
@@ -19,40 +20,69 @@ const App: React.FC = () => {
 
   const handleKeyPress = async (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && input.trim()) {
-      setIsLoading(true);
-      const newTimestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const newTimestampFromUser = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const newMessageIdFromUser = uuidv4();
+
+      const newMessageFromUser: IMessage = {
+        id: newMessageIdFromUser,
+        text: input,
+        timestamp: newTimestampFromUser,
+        sender: 'user',
+        // don't need loading for questions
+        isLoading: false,
+      };
+
+      setMessages(messages => [...messages, newMessageFromUser]);
+      
+      setInput('');
+
+      const newTimestampFromBot = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const newMessageIdFromBot = uuidv4();
+      if (isInitialized) {
+        const newMessageFromBot: IMessage = {
+          id: newMessageIdFromBot,
+          text: input,
+          timestamp: newTimestampFromBot,
+          sender: 'bot',
+          isLoading: true,
+        };
+        setMessages(messages => [...messages, newMessageFromBot]);
+      }
+
+
       const requestBody = isInitialized ? { text: input } : { name: input };
       const requestUrl = isInitialized ? 'http://localhost:5000/send_text' : 'http://localhost:5000/init_chat';
 
       try {
         const response = await fetch(requestUrl, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(requestBody),
         });
 
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
+        if (!response.ok) throw new Error('Network response was not ok');
 
         const data = await response.json();
 
         if (!isInitialized) {
-          setMessages([...messages, { id: Date.now(), text: data.message, sender: 'system' }]);
           setIsInitialized(true);
+          setMessages(currentMessages => [...currentMessages, { id: uuidv4(), text: data.message, sender: 'system' }]);
         } else {
-          const newMessage: IMessage = { id: Date.now(), text: input, timestamp: newTimestamp, sender: 'user' };
-          const botResponse: IMessage = { id: Date.now(), text: data.response_text, timestamp: newTimestamp, sender: 'bot' };
-          setMessages([...messages, newMessage, botResponse]);
+          // TODO: update time stamp
+          setMessages(currentMessages =>
+            currentMessages.map(message =>
+              message.id === newMessageIdFromBot ? { ...message, text: data.response_text, isLoading: false, sender: 'bot' } : message
+            )
+          );
           playResponseMp3(data.mp3_url);
         }
       } catch (error) {
         console.error('Error:', error);
-      } finally {
-        setInput('');
-        setIsLoading(false);
+        setMessages(currentMessages =>
+          currentMessages.map(message =>
+            message.id === newMessageIdFromBot ? { ...message, text: 'Error sending message.', isLoading: false } : message
+          )
+        );
       }
     }
   };
@@ -65,10 +95,9 @@ const App: React.FC = () => {
   return (
     <div className="App">
       <div className="message-container">
-        {messages.map(({ id, text, sender, timestamp }) => (
-          <MessageBubble key={id} text={text} timestamp={timestamp || ''} isUser={sender === 'user'} />
+        {messages.map(({ id, text, sender, timestamp, isLoading }) => (
+          <MessageBubble key={id} text={text} timestamp={timestamp || ''} isUser={sender === 'user'} isLoading={isLoading} />
         ))}
-        {isLoading && <ClipLoader color="#000000" loading={true} size={50} />}
       </div>
       <div className="input-container">
         <input

@@ -3,10 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 
-// Ensure that your HTML file has an element with an ID of 'root'
-const rootElement = document.getElementById('root');
-
-if (!rootElement) throw new Error('Failed to find the root element');
+const rootElement = document.getElementById('root') as HTMLElement;
 
 const root = ReactDOM.createRoot(rootElement);
 

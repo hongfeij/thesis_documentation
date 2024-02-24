@@ -1,0 +1,86 @@
+.message {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+}
+
+.message.user {
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.message.bot {
+    justify-content: flex-end;
+    text-align: right;
+}
+
+.bubble {
+    position: relative;
+    padding: 10px 15px;
+    border-radius: 20px;
+    max-width: 45%;
+    color: white;
+    font-size: 1em;
+}
+
+.bubble.user {
+    background-color: #8843ff;
+}
+
+.bubble.bot {
+    background-color: #a052ff;
+}
+
+.text {
+    word-wrap: break-word;
+}
+
+.timestamp {
+    font-size: 0.75em;
+    color: #999;
+    position: absolute;
+    bottom: -20px;
+    right: 0;
+}
+
+.message.user .timestamp {
+    left: 0;
+    right: auto;
+}
+
+/* Keyframes for the typing dots animation */
+@keyframes typing {
+    0% {
+        content: '';
+    }
+
+    33% {
+        content: '.';
+    }
+
+    66% {
+        content: '..';
+    }
+
+    100% {
+        content: '...';
+    }
+}
+
+/* The container for the typing indicator */
+.typing-indicator {
+    padding: 10px;
+    margin: 4px;
+    display: inline-block;
+    position: relative;
+}
+
+/* The dots for the typing animation */
+.typing-indicator::after {
+    content: '';
+    animation: typing 1.5s steps(4, end) infinite;
+    display: inline-block;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+}
