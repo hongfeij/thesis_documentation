@@ -4,9 +4,14 @@ import openai
 from openai import OpenAI
 import pygame
 from pathlib import Path
+import RPi.GPIO as GPIO
 
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BCM)
 OUTPUT_FILENAME = "recorded_audio.wav"
 RESPONSE_FILENAME = "response.mp3"
+LED_PIN = 17
+GPIO.setup(LED_PIN,GPIO.OUT)
 
 client = OpenAI()
 
@@ -18,6 +23,8 @@ def record_audio():
     RECORD_SECONDS = 5        # Duration of recording
 
     p = pyaudio.PyAudio()
+    
+    GPIO.output(LED_PIN,GPIO.HIGH)
     stream = p.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True,
                     frames_per_buffer=CHUNK, input_device_index=1)
 
@@ -28,12 +35,11 @@ def record_audio():
         data = stream.read(CHUNK)
         frames.append(data)
 
-    print("Finished recording.")
-
     stream.stop_stream()
     stream.close()
 
     p.terminate()
+    GPIO.output(LED_PIN,GPIO.LOW)
 
     wf = wave.open(OUTPUT_FILENAME, 'wb')
     wf.setnchannels(CHANNELS)
@@ -51,7 +57,6 @@ def transcribe_audio():
         language="en",
         file=audio_file,
         response_format="text")
-    print(f"You said: {transcript}")
     return transcript
 
 def play_text(text):
@@ -66,6 +71,8 @@ def play_text(text):
 
     pygame.mixer.init()
     pygame.mixer.music.load(str(speech_file_path))
+    GPIO.output(LED_PIN,GPIO.HIGH)
     pygame.mixer.music.play()
     while pygame.mixer.music.get_busy():
         pygame.time.Clock().tick(10)
+    GPIO.output(LED_PIN,GPIO.LOW)
