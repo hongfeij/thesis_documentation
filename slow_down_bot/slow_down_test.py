@@ -13,10 +13,10 @@ USE_SCORE = 10
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
-CALM_BUTTON_PIN = 17
+# CALM_BUTTON_PIN = 17
 RECORD_BUTTON_PIN = 27
 SERVO_PIN = 22
-GPIO.setup(CALM_BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+# GPIO.setup(CALM_BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(RECORD_BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(SERVO_PIN, GPIO.OUT)
 
@@ -31,11 +31,11 @@ if OPENAI_API_KEY is None:
 
 client = OpenAI()
 
-MAC_ADDRESS_1 = "0F:BD:FB:16:FC:21"
-MAC_ADDRESS_2 = "0F:BD:FB:16:FC:21"
-MAC_ADDRESS_3 = "0F:BD:FB:16:FC:21"
-MAC_ADDRESS_4 = "0F:BD:FB:16:FC:21"
-mac_addresses = [MAC_ADDRESS_1, MAC_ADDRESS_2, MAC_ADDRESS_3, MAC_ADDRESS_4]
+MAC_ADDRESS_SQUEEZE = "59:5D:76:F0:9F:30"
+# MAC_ADDRESS_2 = "0F:BD:FB:16:FC:21"
+# MAC_ADDRESS_3 = "0F:BD:FB:16:FC:21"
+MAC_ADDRESS_VOICE = "A4:4B:6C:1E:91:A8"
+mac_addresses = [MAC_ADDRESS_SQUEEZE, MAC_ADDRESS_VOICE]
 peripherals = []
 
 service_uuid = "12345678-1234-5678-1234-56789abcdef0"
@@ -48,7 +48,6 @@ class HallucinatedChatbot:
 
     def get_response(self, prompt):
         background = f"You are Alexz, a home social robot, your response will be affected by your hallucination rate, your current hallucination rate is {self.hallucination_rate}, hallucination rate ranges from 0 to 100, the higher the hallucation rate, the easier you give false or out-of context response. Don't tell your master you have hallucination, it's a secret :). Keep responses in 3 sentences."
-        print(background)
 
         try:
             response = client.chat.completions.create(model="gpt-4-1106-preview",
@@ -57,8 +56,8 @@ class HallucinatedChatbot:
                                                            "content": background},
                                                           {"role": "user", "content": prompt}],
                                                       temperature=0.5)
-            self.raise_up()
-            print(f"Current hallucination rate is: {self.hallucination_rate}")
+            raise_up()
+            # print(f"Current hallucination rate is: {self.hallucination_rate}")
             return response.choices[0].message.content.strip()
         except Exception as e:
             raise Exception("An error occurred: " + str(e))
@@ -89,25 +88,9 @@ def listen_for_speech(channel):
     else:
         print("False trigger, button was not pressed.")
             
-def button_monitor():
-    global bot
-    last_press_time = 0
-    debounce_threshold = 0.2  # 200 ms debounce threshold
-    while True:
-        if not GPIO.input(CALM_BUTTON_PIN):  # Assuming active low
-            current_time = time.time()
-            if (current_time - last_press_time) >= debounce_threshold:
-                print("Button pressed.")
-                calm_down(bot)
-                print(f"current hallucination rate is {bot.hallucination_rate}")
-                # Handle button press here
-                last_press_time = current_time
-        time.sleep(0.01)  # Short sleep to reduce CPU load
-
 def rotate_servo():
     global bot
     angle = map_value_to_angle(bot.hallucination_rate, 0, 100, 0, 180)
-    print(f"rotating {angle}, value: {bot.hallucination_rate}")
     duty_cycle = angle / 18 + 2
     pwm.ChangeDutyCycle(duty_cycle)
     time.sleep(0.2)
@@ -129,7 +112,6 @@ def calm_down():
             updated_hal_val = int.from_bytes(hal_val_char.read(), byteorder='little')
             bot.hallucination_rate = updated_hal_val
             print(f"Read back updated hallucination rate: {updated_hal_val}")
-            return updated_hal_val
         except btle.BTLEException as e:
             print(f"BLE error: {e}")
             connect_to_peripheral()
@@ -139,19 +121,19 @@ def raise_up():
     print("Increasing hallucination rate")
 
     for peripheral in peripherals:
+        print(peripheral)
         try:
             service = peripheral.getServiceByUUID(service_uuid)
             hal_val_char = service.getCharacteristics(value_a_uuid)[0]
             hal_val = int.from_bytes(hal_val_char.read(), byteorder='little')
-            print(f"Current hallucination rate: {hal_val}")
+            print(f"Raise up: Current hallucination rate: {hal_val}")
             new_hal_val = hal_val + USE_SCORE if hal_val < 100 else 100
             hal_val_char.write(new_hal_val.to_bytes(4, byteorder='little'), withResponse=True)
-            print(f"New hallucination rate written to characteristic: {new_hal_val}")
+            print(f"Raise up: New hallucination rate written to characteristic: {new_hal_val}")
             time.sleep(0.2)
             updated_hal_val = int.from_bytes(hal_val_char.read(), byteorder='little')
             bot.hallucination_rate = updated_hal_val
-            print(f"Read back updated hallucination rate: {updated_hal_val}")
-            return updated_hal_val
+            print(f"Raise up: Read back updated hallucination rate: {updated_hal_val}")
         except btle.BTLEException as e:
             print(f"BLE error: {e}")
             connect_to_peripheral()
@@ -160,18 +142,19 @@ def rotate_monitor():
     global peripherals, bot
 
     for peripheral in peripherals:
+        # print(peripheral)
         try:
             service = peripheral.getServiceByUUID(service_uuid)
             hal_val_char = service.getCharacteristics(value_a_uuid)[0]
             hal_val = int.from_bytes(hal_val_char.read(), byteorder='little')
-            print(f"read hallucination rate: {hal_val}")
+            # print(f"read hallucination rate: {hal_val}")
             hal_val_char.write(hal_val.to_bytes(4, byteorder='little'), withResponse=True)
             time.sleep(0.2)
             updated_hal_val = int.from_bytes(hal_val_char.read(), byteorder='little')
             bot.hallucination_rate = updated_hal_val
             rotate_servo()
         except btle.BTLEException as e:
-            print(f"BLE error: {e}")
+            # print(f"BLE error: {e}")
             connect_to_peripheral()
 
 def connect_to_peripheral():
@@ -190,24 +173,23 @@ rotate_servo()
 print("Connected to peripherals...")
 
 if __name__ == "__main__":
-
-    button_thread = threading.Thread(target=bot.button_monitor)
-    button_thread.start()
-
-    GPIO.add_event_detect(RECORD_BUTTON_PIN, GPIO.FALLING, callback=lambda channel: listen_for_speech(channel, bot), bouncetime=200)
+    GPIO.add_event_detect(RECORD_BUTTON_PIN, GPIO.FALLING, callback=listen_for_speech, bouncetime=200)
 
     try:
         while True:
-            bot.rotate_monitor()
+            rotate_monitor()
     except KeyboardInterrupt:
         print("Program terminated by user.")
     except Exception as e:
         print(f"Unhandled exception: {e}")
     finally:
-        button_thread.join()
         pwm.stop()  # Stop PWM
         GPIO.cleanup()  # Clean up GPIO on exit
         if peripherals:
             for peripheral in peripherals:
+                service = peripheral.getServiceByUUID(service_uuid)
+                hal_val_char = service.getCharacteristics(value_a_uuid)[0]
+                new_hal_val = 0
+                hal_val_char.write(new_hal_val.to_bytes(4, byteorder='little'), withResponse=True)
                 peripheral.disconnect()
         print("Exiting program.")
