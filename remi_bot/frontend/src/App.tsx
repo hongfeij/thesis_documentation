@@ -29,8 +29,6 @@ const App: React.FC = () => {
       text: input,
       timestamp: newTimestampFromUser,
       sender: 'user',
-      // don't need loading for questions
-      isLoading: false,
     };
 
     setMessages(messages => [...messages, newMessageFromUser]);
@@ -50,9 +48,8 @@ const App: React.FC = () => {
       setMessages(messages => [...messages, newMessageFromBot]);
     }
 
-
     const requestBody = isInitialized ? { text: input } : { name: input };
-    const requestUrl = isInitialized ? 'http://localhost:5000/send_text' : 'http://localhost:5000/init_chat';
+    const requestUrl = isInitialized ? 'http://localhost:2024/send_text' : 'http://localhost:2024/init_chat';
 
     try {
       const response = await fetch(requestUrl, {
@@ -69,10 +66,9 @@ const App: React.FC = () => {
         setIsInitialized(true);
         setMessages(currentMessages => [...currentMessages, { id: uuidv4(), text: data.message, sender: 'system' }]);
       } else {
-        // TODO: update time stamp
         setMessages(currentMessages =>
           currentMessages.map(message =>
-            message.id === newMessageIdFromBot ? { ...message, text: data.response_text, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),isLoading: false, sender: 'bot' } : message
+            message.id === newMessageIdFromBot ? { ...message, text: data.response_text, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), isLoading: false, sender: 'bot' } : message
           )
         );
         playResponseMp3(data.mp3_url);
@@ -81,7 +77,7 @@ const App: React.FC = () => {
       console.error('Error:', error);
       setMessages(currentMessages =>
         currentMessages.map(message =>
-          message.id === newMessageIdFromBot ? { ...message, text: 'Error sending message.', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),isLoading: false } : message
+          message.id === newMessageIdFromBot ? { ...message, text: 'Error sending message.', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), isLoading: false } : message
         )
       );
     }
@@ -93,8 +89,23 @@ const App: React.FC = () => {
     }
   };
 
+  // const playResponseMp3 = (url: string) => {
+  //   const audio = new Audio(url);
+  //   audio.play();
+  // };
+
   const playResponseMp3 = (url: string) => {
     const audio = new Audio(url);
+    const requestUrl = 'http://localhost:2024/audio_played';
+    audio.onended = () => {
+      const messageBody = JSON.stringify({ filename: url.split('/').pop() });
+      console.log('Sending message:', messageBody);
+      fetch(requestUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: messageBody,
+      });
+    };
     audio.play();
   };
 
