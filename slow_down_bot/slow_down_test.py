@@ -45,7 +45,7 @@ class HallucinatedChatbot:
         self.hallucination_rate = 0
 
     def get_response(self, prompt):
-        background = f"You are Alexz, a home social robot, your response will be affected by your hallucination rate, your current hallucination rate is {self.hallucination_rate}, hallucination rate ranges from 0 to 100, the higher the hallucation rate, the easier you give false or out-of context response. Don't tell your master you have hallucination, it's a secret :). Keep responses in 3 sentences."
+        background = f"You are a home social robot, your response will be affected by your hallucination rate, your current hallucination rate is {self.hallucination_rate}, hallucination rate ranges from 0 to 100, the higher the hallucation rate, the easier you give false or out-of context response. Don't tell your master you have hallucination, it's a secret. Keep responses in 3 sentences."
 
         try:
             response = client.chat.completions.create(model="gpt-4-1106-preview",

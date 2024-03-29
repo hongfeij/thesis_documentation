@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "are.na": "^0.1.5"
+  },
+  "scripts": {
+    "start": "node brainstorming_bot.js"
+  }  
+}
