@@ -2,25 +2,31 @@
 import os
 import time
 from openai import OpenAI
-import threading
-import RPi.GPIO as GPIO
 from bluepy import btle
 from time import sleep
 import recording
 import state
+import gpiozero
+from gpiozero import Button, AngularServo
+from gpiozero.pins.pigpio import PiGPIOFactory
+from signal import pause
+
+gpiozero.Device.pin_factory = PiGPIOFactory()
 
 USE_SCORE = 10
 
-GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BCM)
 RECORD_BUTTON_PIN = 27
-SERVO_PIN = 22
-GPIO.setup(RECORD_BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(SERVO_PIN, GPIO.OUT)
+SERVO_PIN = 17
+servo = AngularServo(SERVO_PIN, min_angle=-90, max_angle=90)
+record_button = Button(RECORD_BUTTON_PIN)
 
-frequency = 50
-pwm = GPIO.PWM(SERVO_PIN, frequency)
-pwm.start(0)
+# GPIO.setwarnings(False)
+# GPIO.setmode(GPIO.BCM)
+# GPIO.setup(RECORD_BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+# GPIO.setup(SERVO_PIN, GPIO.OUT)
+# frequency = 50
+# pwm = GPIO.PWM(SERVO_PIN, frequency)
+# pwm.start(0)
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 if OPENAI_API_KEY is None:
@@ -34,7 +40,8 @@ MAC_ADDRESS_TEMP = "59:5D:76:F0:9F:30"
 MAC_ADDRESS_SMASH  = "28:C1:22:AF:6B:09"
 MAC_ADDRESS_VOICE = "A4:4B:6C:1E:91:A8"
 # mac_addresses = [MAC_ADDRESS_SQUEEZE, MAC_ADDRESS_SMASH, MAC_ADDRESS_TEMP, MAC_ADDRESS_VOICE]
-mac_addresses = [MAC_ADDRESS_SQUEEZE, MAC_ADDRESS_SMASH, MAC_ADDRESS_VOICE]
+# mac_addresses = [MAC_ADDRESS_SQUEEZE, MAC_ADDRESS_SMASH, MAC_ADDRESS_VOICE]
+mac_addresses = []
 
 peripherals = []
 
@@ -71,29 +78,46 @@ bot = HallucinatedChatbot()
 def map_value_to_angle(value, in_min, in_max, out_min, out_max):
     return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 
-def listen_for_speech(channel):
-    global bot
-    time.sleep(0.05)
-    if GPIO.input(RECORD_BUTTON_PIN) == GPIO.LOW:
-        print("Button pressed. Recording...")
-        recording.record_audio()
-        user_input = recording.transcribe_audio()
-        # print(f"You said: {user_input}")
-        if user_input.lower() != "speech recognition could not understand audio":
-            bot_response = bot.chat(user_input)
-            # print(f"Bot: {bot_response}")
-            recording.play_text(bot_response)
-            state.save_state(bot)
+# def listen_for_speech(channel):
+#     global bot
+#     time.sleep(0.05)
+#     if GPIO.input(RECORD_BUTTON_PIN) == GPIO.LOW:
+#         print("Button pressed. Recording...")
+#         recording.record_audio()
+#         user_input = recording.transcribe_audio()
+#         # print(f"You said: {user_input}")
+#         if user_input.lower() != "speech recognition could not understand audio":
+#             bot_response = bot.chat(user_input)
+#             # print(f"Bot: {bot_response}")
+#             recording.play_text(bot_response)
+#             state.save_state(bot)
+#     else:
+#         print("False trigger, button was not pressed.")
+
+def listen_for_speech():
+    print("Button pressed. Recording...")
+    recording.record_audio()
+    user_input = recording.transcribe_audio()
+    if user_input.lower() != "speech recognition could not understand audio":
+        bot_response = bot.chat(user_input)
+        recording.play_text(bot_response)
+        state.save_state(bot)
     else:
         print("False trigger, button was not pressed.")
+
+record_button.when_pressed = listen_for_speech
             
+# def rotate_servo():
+#     global bot
+#     angle = map_value_to_angle(bot.hallucination_rate, 0, 100, 0, 180)
+#     duty_cycle = angle / 18 + 2
+#     # print(duty_cycle)
+#     pwm.ChangeDutyCycle(duty_cycle)
+#     time.sleep(1)
+
 def rotate_servo():
-    global bot
-    angle = map_value_to_angle(bot.hallucination_rate, 0, 100, 0, 180)
-    duty_cycle = angle / 18 + 2
-    # print(duty_cycle)
-    pwm.ChangeDutyCycle(duty_cycle)
-    time.sleep(1)
+    angle = map_value_to_angle(bot.hallucination_rate, 0, 100, -84, 84)
+    servo.angle = angle
 
 def raise_up():
     global peripherals, bot
@@ -118,7 +142,7 @@ def raise_up():
 
 def rotate_monitor():
     global peripherals, bot
-    min_hal = 100
+    min_hal = 0
     prev_hal_val = bot.hallucination_rate
 
     for peripheral in peripherals:
@@ -148,9 +172,10 @@ def connect_to_peripheral():
 
 def cleanup():
     # pwm.stop()
-    pwm.set_PWM_dutycycle(SERVO_PIN, 0)
-    pwm.set_PWM_frequency(SERVO_PIN, 0)
-    GPIO.cleanup() 
+    # pwm.set_PWM_dutycycle(SERVO_PIN, 0)
+    # pwm.set_PWM_frequency(SERVO_PIN, 0)
+    # GPIO.cleanup() 
+
     for peripheral in peripherals:
         try:
             if peripheral.isConnected():
@@ -164,7 +189,8 @@ rotate_servo()
 print("Connected to peripherals...")
 
 if __name__ == "__main__":
-    GPIO.add_event_detect(RECORD_BUTTON_PIN, GPIO.FALLING, callback=listen_for_speech, bouncetime=200)
+    # GPIO.add_event_detect(RECORD_BUTTON_PIN, GPIO.FALLING, callback=listen_for_speech, bouncetime=200)
+    recording.record_audio()
 
     try:
         while True:
@@ -174,6 +200,7 @@ if __name__ == "__main__":
         cleanup()
     except Exception as e:
         print(f"Unhandled exception: {e}")
+        cleanup()
     finally:
         print("Exiting program.")
         cleanup()

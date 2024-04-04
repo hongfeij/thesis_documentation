@@ -3,7 +3,7 @@ import time
 from time import sleep
 
 # Setup
-SERVO_PIN = 22  # Change this to the GPIO pin you are using
+SERVO_PIN = 17  # Change this to the GPIO pin you are using
 GPIO.setmode(GPIO.BCM)  # Use Broadcom pin-numbering scheme
 GPIO.setup(SERVO_PIN, GPIO.OUT)
 
@@ -32,7 +32,10 @@ try:
         sleep(4)
         angle = map_value_to_angle(100, 0, 100, 0, 180)
         set_servo_angle(angle)
-
+except KeyboardInterrupt:
+    print("Program terminated by user.")
+    pwm.stop()  # Stop PWM
+    GPIO.cleanup()  # Clean up GPIO
 finally:
     pwm.stop()  # Stop PWM
     GPIO.cleanup()  # Clean up GPIO
