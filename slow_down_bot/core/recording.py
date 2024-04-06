@@ -20,7 +20,7 @@ client = OpenAI()
 CHANNELS = 2              # Number of audio channels
 RATE = 48000              # Sample rate (Hz)
 RECORD_SECONDS = 5        # Duration of recording
-DEVICE_INDEX = 1
+DEVICE_INDEX = 3
 
 # def record_audio():
 #     FORMAT = pyaudio.paInt16  # Audio format (16-bit PCM)
@@ -64,7 +64,7 @@ DEVICE_INDEX = 1
 
 def record_audio():
     # Set the device (if you have a specific one, otherwise you can remove this)
-    # sd.default.device = DEVICE_INDEX
+    sd.default.device = DEVICE_INDEX
     
     print("Recording...")
     # GPIO.output(LED_PIN,GPIO.HIGH)  # Uncomment if you use GPIO
@@ -94,6 +94,7 @@ def transcribe_audio():
     return transcript
 
 def play_text(text):
+    print(f"A: {text}")
     print("Play text")
     speech_file_path = Path(__file__).parent / RESPONSE_FILENAME
     response = openai.audio.speech.create(

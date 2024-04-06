@@ -1,0 +1,52 @@
+[
+    {
+        "id": 1,
+        "last_user_input": "you\n",
+        "hallucination_rate": 0
+    },
+    {
+        "id": 2,
+        "last_user_input": "you\n",
+        "hallucination_rate": 0
+    },
+    {
+        "id": 3,
+        "last_user_input": "you\n",
+        "hallucination_rate": 0
+    },
+    {
+        "id": 4,
+        "last_user_input": "you\n",
+        "hallucination_rate": 0
+    },
+    {
+        "id": 5,
+        "last_user_input": "you\n",
+        "hallucination_rate": 0
+    },
+    {
+        "id": 6,
+        "last_user_input": "you\n",
+        "hallucination_rate": 0
+    },
+    {
+        "id": 7,
+        "last_user_input": "you\n",
+        "hallucination_rate": 0
+    },
+    {
+        "id": 8,
+        "last_user_input": "",
+        "hallucination_rate": 0
+    },
+    {
+        "id": 9,
+        "last_user_input": "",
+        "hallucination_rate": 0
+    },
+    {
+        "id": 10,
+        "last_user_input": "",
+        "hallucination_rate": 0
+    }
+]
