@@ -2,9 +2,9 @@ import RPi.GPIO as GPIO
 import time
 
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(17, GPIO.OUT)
+GPIO.setup(27, GPIO.OUT)
 
-p = GPIO.PWM(17, 50)  # channel=17, frequency=50Hz
+p = GPIO.PWM(27, 50)  # channel=17, frequency=50Hz
 p.start(7.5)  # Neutral position
 
 try:

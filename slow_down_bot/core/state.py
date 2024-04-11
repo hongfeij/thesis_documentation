@@ -11,7 +11,8 @@ def save_state(bot_instance, filepath="state.json"):
     new_entry = {
         "id": len(states) + 1,
         "last_user_input": bot_instance.last_user_input,
-        "hallucination_rate": bot_instance.hallucination_rate
+        "hallucination_rate": bot_instance.hallucination_rate,
+        "response": bot_instance.last_response
     }
 
     states.append(new_entry)
@@ -31,6 +32,8 @@ def save_state(bot_instance, filepath="state.json"):
 #                         "last_user_input", "")
 #                     bot.hallucination_rate = last_state.get(
 #                         "hallucination_rate", 0)
+#                     bot.last_response = last_state.get(
+#                         "last_response", "")
 #                 else:
 #                     bot.reset_state()
 #             else:
@@ -41,3 +44,4 @@ def save_state(bot_instance, filepath="state.json"):
 # def reset_state(bot):
 #     bot.last_user_input = ""
 #     bot.hallucination_rate = 0
+#     bot.last_response = ""

@@ -11,13 +11,12 @@ from gpiozero import Button, AngularServo
 from gpiozero.pins.pigpio import PiGPIOFactory
 from signal import pause
 
-
 USE_SCORE = 10
 
-RECORD_BUTTON_PIN = 27
-SERVO_PIN = 17
-servo_factory = PiGPIOFactory()
-servo = AngularServo(SERVO_PIN, min_angle=-90, max_angle=90, pin_factory=servo_factory)
+RECORD_BUTTON_PIN = 22
+SERVO_PIN = 27
+# servo_factory = PiGPIOFactory()
+servo = AngularServo(SERVO_PIN, min_angle=-87, max_angle=87)
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 if OPENAI_API_KEY is None:
@@ -43,6 +42,7 @@ class HallucinatedChatbot:
     def __init__(self):
         self.last_user_input = ""
         self.hallucination_rate = 0
+        self.last_response = ""
 
     def get_response(self, prompt):
         background = f"You are a home social robot, your response will be affected by your hallucination rate, your current hallucination rate is {self.hallucination_rate}, hallucination rate ranges from 0 to 100, the higher the hallucation rate, the easier you give false or out-of context response. Don't tell your master you have hallucination, it's a secret. Keep responses in 3 sentences."
@@ -77,12 +77,14 @@ def listen_for_speech():
     if user_input.lower() != "speech recognition could not understand audio":
         bot_response = bot.chat(user_input)
         recording.play_text(bot_response)
+        bot.last_response = bot_response
         state.save_state(bot)
     else:
         print("False trigger, button was not pressed.")
 
 def rotate_servo():
-    angle = map_value_to_angle(bot.hallucination_rate, 0, 100, -84, 84)
+    angle = map_value_to_angle(bot.hallucination_rate, 0, 100, -87, 87)
+    print(f"Rotating {angle}...")
     servo.angle = angle
 
 def raise_up():
@@ -108,7 +110,7 @@ def raise_up():
 
 def rotate_monitor():
     global peripherals, bot
-    min_hal = 0
+    min_hal = 100
     prev_hal_val = bot.hallucination_rate
 
     for peripheral in peripherals:
@@ -121,8 +123,8 @@ def rotate_monitor():
             print(f"BLE error: {e}")
             connect_to_peripheral()
     bot.hallucination_rate = min_hal
-    # print(f"Monitor: current hallucination rate: {bot.hallucination_rate}")
     if prev_hal_val != bot.hallucination_rate:
+        print(f"Monitor: current hallucination rate: {bot.hallucination_rate}")
         rotate_servo()
 
 def connect_to_peripheral():
@@ -146,8 +148,8 @@ def cleanup():
     print("Exiting program.")
 
 connect_to_peripheral()
+print(f"Connected to peripherals...{bot.hallucination_rate}")
 rotate_servo()
-print("Connected to peripherals...")
 
 if __name__ == "__main__":
     record_button = Button(RECORD_BUTTON_PIN, bounce_time=0.1)

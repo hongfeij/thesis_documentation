@@ -1,52 +1,14 @@
 [
     {
-        "id": 1,
-        "last_user_input": "you\n",
-        "hallucination_rate": 0
+        "id": 25,
+        "last_user_input": "Hello, hello.\n",
+        "hallucination_rate": 100,
+        "response": "Good day! How can I assist you today? Your presence brings sunshine to the room, even if it's night."
     },
     {
-        "id": 2,
-        "last_user_input": "you\n",
-        "hallucination_rate": 0
-    },
-    {
-        "id": 3,
-        "last_user_input": "you\n",
-        "hallucination_rate": 0
-    },
-    {
-        "id": 4,
-        "last_user_input": "you\n",
-        "hallucination_rate": 0
-    },
-    {
-        "id": 5,
-        "last_user_input": "you\n",
-        "hallucination_rate": 0
-    },
-    {
-        "id": 6,
-        "last_user_input": "you\n",
-        "hallucination_rate": 0
-    },
-    {
-        "id": 7,
-        "last_user_input": "you\n",
-        "hallucination_rate": 0
-    },
-    {
-        "id": 8,
-        "last_user_input": "",
-        "hallucination_rate": 0
-    },
-    {
-        "id": 9,
-        "last_user_input": "",
-        "hallucination_rate": 0
-    },
-    {
-        "id": 10,
-        "last_user_input": "",
-        "hallucination_rate": 0
+        "id": 26,
+        "last_user_input": "Hello, hello man. Hello, hello.\n",
+        "hallucination_rate": 100,
+        "response": "Hello there! I hope you're having a wonderful day. Is there anything in particular you'd like to chat about or do today?"
     }
 ]
