@@ -1,5 +1,5 @@
-import pyaudio
-# import sounddevice as sd
+# import pyaudio
+import alsaaudio
 import wave
 from openai import OpenAI
 import pygame
@@ -18,40 +18,33 @@ RESPONSE_FILENAME = "response.mp3"
 
 client = OpenAI()
 
+OUTPUT_FILENAME = "recorded_audio.wav"
+CHANNELS = 1
+RATE = 44100
+FORMAT = alsaaudio.PCM_FORMAT_S16_LE
+CHUNK_SIZE = 512
+RECORDING_LENGTH = 5
+
 def record_audio():
-    FORMAT = pyaudio.paInt16
-    CHANNELS = 1           # Number of channels
-    BITRATE = 44100        # Audio Bitrate
-    CHUNK_SIZE = 512       # Chunk size to 
-    RECORDING_LENGTH = 5  # Recording Length in seconds
-    DEVICE_ID = 1
-    audio = pyaudio.PyAudio()
+    recorder = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NONBLOCK)
+    recorder.setchannels(CHANNELS)
+    recorder.setrate(RATE)
+    recorder.setformat(FORMAT)
+    recorder.setperiodsize(CHUNK_SIZE)
 
-    stream = audio.open(
-        format=FORMAT,
-        channels=CHANNELS,
-        rate=BITRATE,
-        input=True,
-        input_device_index = DEVICE_ID,
-        frames_per_buffer=CHUNK_SIZE
-    )
-
+    num_frames = int(RATE / CHUNK_SIZE * RECORDING_LENGTH)
     recording_frames = []
 
-    for i in range(int(BITRATE / CHUNK_SIZE * RECORDING_LENGTH)):
-        data = stream.read(CHUNK_SIZE)
-        recording_frames.append(data)
+    for _ in range(num_frames):
+        l, data = recorder.read()
+        if l:
+            recording_frames.append(data)
 
-    stream.stop_stream()
-    stream.close()
-    audio.terminate()
-
-    waveFile = wave.open(OUTPUT_FILENAME, 'wb')
-    waveFile.setnchannels(CHANNELS)
-    waveFile.setsampwidth(audio.get_sample_size(FORMAT))
-    waveFile.setframerate(BITRATE)
-    waveFile.writeframes(b''.join(recording_frames))
-    waveFile.close()
+    with wave.open(OUTPUT_FILENAME, 'wb') as wave_file:
+        wave_file.setnchannels(CHANNELS)
+        wave_file.setsampwidth(alsaaudio.pcm_width(FORMAT))
+        wave_file.setframerate(RATE)
+        wave_file.writeframes(b''.join(recording_frames))
 
 def transcribe_audio():
     audio_file = open(OUTPUT_FILENAME, "rb")
