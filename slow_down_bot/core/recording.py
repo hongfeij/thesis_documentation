@@ -27,12 +27,6 @@ def record_audio():
     DEVICE_ID = 1
     audio = pyaudio.PyAudio()
 
-    # info = audio.get_host_api_info_by_index(0)
-    # numdevices = info.get('deviceCount')
-    # for i in range(0, numdevices):
-    #     if (audio.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0:
-    #         print("Input Device id ", i, " - ", audio.get_device_info_by_host_api_device_index(0, i).get('name'))
-
     stream = audio.open(
         format=FORMAT,
         channels=CHANNELS,
@@ -70,25 +64,25 @@ def transcribe_audio():
 
 def play_text(text):
     print(f"A: {text}")
+    response = client.audio.speech.create(model="tts-1", voice="echo", input=text)
+    speech_file_path = Path(__file__).parent / RESPONSE_FILENAME
+
     try:
-        response = client.audio.speech.create(
-            model="tts-1",
-            voice="echo",
-            input=text
-        )
-        speech_file_path = Path(__file__).parent / RESPONSE_FILENAME
         with open(speech_file_path, 'wb') as f:
             f.write(response.content)
 
-        pygame.mixer.init()
+        pygame.mixer.init(frequency=24000)
         pygame.mixer.music.load(str(speech_file_path))
-            # GPIO.output(LED_PIN,GPIO.HIGH)
         pygame.mixer.music.play()
+
         while pygame.mixer.music.get_busy():
             pygame.time.Clock().tick(10)
-                # GPIO.output(LED_PIN,GPIO.LOW)
+
+    except Exception as e:
+        print(f"Error during playback: {e}")
+
     finally:
-        if os.path.exists(speech_file_path):
-            os.remove(speech_file_path)
-        if os.path.exists(OUTPUT_FILENAME):
-            os.remove(OUTPUT_FILENAME)
+        pygame.mixer.music.stop()
+        pygame.mixer.quit()
+        os.remove(speech_file_path)
+        os.remove(OUTPUT_FILENAME)

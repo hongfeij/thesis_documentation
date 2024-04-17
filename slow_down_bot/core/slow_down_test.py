@@ -15,8 +15,8 @@ USE_SCORE = 10
 
 RECORD_BUTTON_PIN = 22
 SERVO_PIN = 27
-# servo_factory = PiGPIOFactory()
-servo = AngularServo(SERVO_PIN, min_angle=-87, max_angle=87)
+servo_factory = PiGPIOFactory()
+servo = AngularServo(SERVO_PIN, min_angle=-87, max_angle=87, pin_factory=servo_factory)
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 if OPENAI_API_KEY is None:
@@ -25,15 +25,9 @@ if OPENAI_API_KEY is None:
 
 client = OpenAI()
 
-MAC_ADDRESS_SQUEEZE = "0F:BD:FB:16:FC:21"
-MAC_ADDRESS_TEMP = "59:5D:76:F0:9F:30"
-MAC_ADDRESS_SMASH  = "28:C1:22:AF:6B:09"
-MAC_ADDRESS_VOICE = "A4:4B:6C:1E:91:A8"
-# mac_addresses = [MAC_ADDRESS_SQUEEZE, MAC_ADDRESS_SMASH, MAC_ADDRESS_TEMP, MAC_ADDRESS_VOICE]
-# mac_addresses = [MAC_ADDRESS_SQUEEZE, MAC_ADDRESS_SMASH, MAC_ADDRESS_VOICE]
-mac_addresses = []
+mac_address = "5E:C9:E8:B7:7A:FC"
 
-peripherals = []
+peripheral = None
 
 service_uuid = "12345678-1234-5678-1234-56789abcdef0"
 value_a_uuid = "12345678-1234-5678-1234-56789abcdef1"
@@ -88,67 +82,58 @@ def rotate_servo():
     servo.angle = angle
 
 def raise_up():
-    global peripherals, bot
+    global peripheral, bot
     # print("Increasing hallucination rate")
 
-    for peripheral in peripherals:
-        try:
-            service = peripheral.getServiceByUUID(service_uuid)
-            hal_val_char = service.getCharacteristics(value_a_uuid)[0]
-            hal_val = int.from_bytes(hal_val_char.read(), byteorder='little')
-            # print(f"Raise up: Current hallucination rate: {hal_val}")
-            new_hal_val = hal_val + USE_SCORE if hal_val < 100 else 100
-            hal_val_char.write(new_hal_val.to_bytes(4, byteorder='little'), withResponse=True)
-            # print(f"Raise up: New hallucination rate written to characteristic: {new_hal_val}")
-            time.sleep(0.2)
-            updated_hal_val = int.from_bytes(hal_val_char.read(), byteorder='little')
-            bot.hallucination_rate = updated_hal_val
-            # print(f"Raise up: Read back updated hallucination rate: {updated_hal_val}")
-        except btle.BTLEException as e:
-            print(f"BLE error: {e}")
-            connect_to_peripheral()
+    try:
+        service = peripheral.getServiceByUUID(service_uuid)
+        hal_val_char = service.getCharacteristics(value_a_uuid)[0]
+        hal_val = int.from_bytes(hal_val_char.read(), byteorder='little')
+        # print(f"Raise up: Current hallucination rate: {hal_val}")
+        new_hal_val = hal_val + USE_SCORE if hal_val < 100 else 100
+        hal_val_char.write(new_hal_val.to_bytes(4, byteorder='little'), withResponse=True)
+        # print(f"Raise up: New hallucination rate written to characteristic: {new_hal_val}")
+        time.sleep(0.2)
+        updated_hal_val = int.from_bytes(hal_val_char.read(), byteorder='little')
+        bot.hallucination_rate = updated_hal_val
+        # print(f"Raise up: Read back updated hallucination rate: {updated_hal_val}")
+    except btle.BTLEException as e:
+        print(f"BLE error: {e}")
+        connect_to_peripheral()
 
 def rotate_monitor():
-    global peripherals, bot
-    min_hal = 100
+    global peripheral, bot
     prev_hal_val = bot.hallucination_rate
 
-    for peripheral in peripherals:
-        try:
-            service = peripheral.getServiceByUUID(service_uuid)
-            hal_val_char = service.getCharacteristics(value_a_uuid)[0]
-            hal_val = int.from_bytes(hal_val_char.read(), byteorder='little')
-            min_hal = min(min_hal, hal_val)
-        except btle.BTLEException as e:
-            print(f"BLE error: {e}")
-            connect_to_peripheral()
-    bot.hallucination_rate = min_hal
+    try:
+        service = peripheral.getServiceByUUID(service_uuid)
+        hal_val_char = service.getCharacteristics(value_a_uuid)[0]
+        hal_val = int.from_bytes(hal_val_char.read(), byteorder='little')
+    except btle.BTLEException as e:
+        print(f"BLE error: {e}")
+        connect_to_peripheral()
+    bot.hallucination_rate = hal_val
     if prev_hal_val != bot.hallucination_rate:
         print(f"Monitor: current hallucination rate: {bot.hallucination_rate}")
         rotate_servo()
 
 def connect_to_peripheral():
-    global peripherals
-    peripherals = []
-    for mac_address in mac_addresses:
-        try:
-            print(f"Connecting to peripheral {mac_address}...")
-            peripheral = btle.Peripheral(mac_address)
-            peripherals.append(peripheral)
-        except Exception as e:
-            print(f"Failed to connect to {mac_address}: {e}")
+    global peripheral
+    try:
+        print(f"Connecting to peripheral {mac_address}...")
+        peripheral = btle.Peripheral(mac_address)
+    except Exception as e:
+        print(f"Failed to connect to {mac_address}: {e}")
 
 def cleanup():
-    for peripheral in peripherals:
-        try:
-            if peripheral.isConnected():
-                peripheral.disconnect()
-        except Exception as e:
-            print(f"Exception during cleanup: {e}")
+    try:
+        if peripheral.isConnected():
+            peripheral.disconnect()
+    except Exception as e:
+        print(f"Exception during cleanup: {e}")
     print("Exiting program.")
 
 connect_to_peripheral()
-print(f"Connected to peripherals...{bot.hallucination_rate}")
 rotate_servo()
 
 if __name__ == "__main__":
