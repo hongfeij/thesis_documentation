@@ -12,7 +12,7 @@ import os
 # GPIO.setwarnings(False)
 # GPIO.setmode(GPIO.BCM)
 OUTPUT_FILENAME = "recorded_audio.wav"
-RESPONSE_FILENAME = "response.mp3"
+RESPONSE_FILENAME = "response.wav"
 # LED_PIN = 17
 # GPIO.setup(LED_PIN,GPIO.OUT)
 
@@ -58,26 +58,28 @@ def transcribe_audio():
 
 def play_text(text):
     print(f"A: {text}")
-    response = client.audio.speech.create(model="tts-1", voice="echo", input=text)
+    response = client.audio.speech.create(model="tts-1", voice="echo", input=text, response_format="wav")
     speech_file_path = Path(__file__).parent / RESPONSE_FILENAME
+    response.stream_to_file(speech_file_path)
+
+    speech_file_path = str(speech_file_path) if isinstance(speech_file_path, Path) else speech_file_path
 
     try:
-        with open(speech_file_path, 'wb') as f:
-            f.write(response.content)
+        with wave.open(speech_file_path, 'rb') as wf:
+            player = alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK, mode=alsaaudio.PCM_NORMAL, 
+                                rate=RATE, channels=CHANNELS, format=FORMAT, 
+                                periodsize=CHUNK_SIZE, device="plughw:CARD=seeed2micvoicec,DEV=0")
+            
+            data = wf.readframes(CHUNK_SIZE)
+            while data:
+                player.write(data)
+                data = wf.readframes(CHUNK_SIZE)
 
-        pygame.mixer.init(frequency=RATE, size=-16, channels=CHANNELS, buffer=CHUNK_SIZE, 
-                          devicename="Built-in Audio Stereo (2)", allowedchanges=pygame.AUDIO_ALLOW_FREQUENCY_CHANGE)
-        pygame.mixer.music.load(str(speech_file_path))
-        pygame.mixer.music.play()
-
-        while pygame.mixer.music.get_busy():
-            pygame.time.Clock().tick(10)
+            player.close()
 
     except Exception as e:
         print(f"Error during playback: {e}")
 
-    finally:
-        pygame.mixer.music.stop()
-        pygame.mixer.quit()
-        os.remove(speech_file_path)
-        os.remove(OUTPUT_FILENAME)
+    # finally:
+    #     os.remove(speech_file_path)
+    #     os.remove(OUTPUT_FILENAME)
