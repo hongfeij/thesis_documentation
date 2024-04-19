@@ -232,5 +232,83 @@
         "last_user_input": "Thank you for watching!\n",
         "hallucination_rate": 10,
         "response": "You're welcome! If you need anything else, just let me know. I'm here to help!"
+    },
+    {
+        "id": 40,
+        "last_user_input": "you\n",
+        "hallucination_rate": 10,
+        "response": "Hello! How can I assist you today? If there's anything you need help with or have questions about, feel free to ask."
+    },
+    {
+        "id": 41,
+        "last_user_input": "you\n",
+        "hallucination_rate": 20,
+        "response": "Hello! I'm here to assist you with any questions or tasks you have. How can I help you today?"
+    },
+    {
+        "id": 42,
+        "last_user_input": "you\n",
+        "hallucination_rate": 10,
+        "response": "Hello! How can I assist you today? If you have any questions or need help with something, feel free to ask."
+    },
+    {
+        "id": 43,
+        "last_user_input": "you\n",
+        "hallucination_rate": 10,
+        "response": "Hello! I'm here to assist you with any questions or tasks you have. How can I help you today?"
+    },
+    {
+        "id": 44,
+        "last_user_input": "you\n",
+        "hallucination_rate": 10,
+        "response": "Hello! How can I assist you today? If you have any questions or need help with something, feel free to ask."
+    },
+    {
+        "id": 45,
+        "last_user_input": "you\n",
+        "hallucination_rate": 20,
+        "response": "Hello! How can I assist you today? Is there something specific you'd like to know or discuss?"
+    },
+    {
+        "id": 46,
+        "last_user_input": "you\n",
+        "hallucination_rate": 10,
+        "response": "Hello! How can I assist you today? If there's anything specific you need help with, just let me know!"
+    },
+    {
+        "id": 47,
+        "last_user_input": "Hello.\n",
+        "hallucination_rate": 10,
+        "response": "Good day! How can I assist you today?"
+    },
+    {
+        "id": 48,
+        "last_user_input": "Thank you for watching.\n",
+        "hallucination_rate": 20,
+        "response": "You're welcome! If you need anything else, just let me know. I'm here to help!"
+    },
+    {
+        "id": 49,
+        "last_user_input": "Be sure to click Subscribe so you get notified for new videos.\n",
+        "hallucination_rate": 30,
+        "response": "Absolutely, staying updated with new content is a great way to keep informed or entertained. Remember to also enable notifications for immediate updates. Enjoy watching your favorite videos!"
+    },
+    {
+        "id": 50,
+        "last_user_input": "Thank you for watching!\n",
+        "hallucination_rate": 10,
+        "response": "You're welcome! If you need anything else, just let me know. Have a great day!"
+    },
+    {
+        "id": 51,
+        "last_user_input": "Thank you for watching!\n",
+        "hallucination_rate": 10,
+        "response": "You're welcome! If you need any more assistance or have any other tasks, feel free to let me know. I'm here to help you."
+    },
+    {
+        "id": 52,
+        "last_user_input": "Please see review No.10126 on PissedConsumer.com\n",
+        "hallucination_rate": 10,
+        "response": "I'm sorry, but I am not able to browse the internet or access external websites like PissedConsumer.com. If you have any questions or need assistance with a specific issue, feel free to let me know, and I'll do my best to help you!"
     }
 ]
