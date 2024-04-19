@@ -1,6 +1,7 @@
 import json
 
-def save_state(bot_instance, filepath="state.json"):
+
+def save_state(bot_instance, isAction, action, filepath="state.json"):
     states = []
     try:
         with open(filepath, "r") as f:
@@ -8,12 +9,22 @@ def save_state(bot_instance, filepath="state.json"):
     except FileNotFoundError:
         pass
 
-    new_entry = {
-        "id": len(states) + 1,
-        "last_user_input": bot_instance.last_user_input,
-        "hallucination_rate": bot_instance.hallucination_rate,
-        "response": bot_instance.last_response
-    }
+
+    if not isAction:
+        new_entry = {
+            "id": len(states) + 1,
+            "last_user_input": bot_instance.last_user_input,
+            "hallucination_rate": bot_instance.hallucination_rate,
+            "response": bot_instance.last_response
+        }
+    else:
+        new_entry = {
+            "id": len(states) + 1,
+            "last_user_input": bot_instance.last_user_input,
+            "hallucination_rate": bot_instance.hallucination_rate,
+            "response": action
+        }
+
 
     states.append(new_entry)
 
