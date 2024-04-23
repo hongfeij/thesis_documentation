@@ -26,10 +26,10 @@ if OPENAI_API_KEY is None:
 client = OpenAI()
 
 MAC_ADDRESS_SQUEEZE = "0F:BD:FB:16:FC:21"
-MAC_ADDRESS_TEMP = "59:5D:76:F0:9F:30"
-MAC_ADDRESS_SMASH  = "28:C1:22:AF:6B:09"
-MAC_ADDRESS_VOICE = "A4:4B:6C:1E:91:A8"
-mac_addresses = []
+MAC_ADDRESS_SMASH  = "6C:85:F7:B1:65:2E"
+MAC_ADDRESS_WHISPER = "A4:4B:6C:1E:91:A8"
+MAC_ADDRESS_TICKLE = "62:2F:58:C9:02:47"
+mac_addresses = [MAC_ADDRESS_TICKLE, MAC_ADDRESS_WHISPER, MAC_ADDRESS_SMASH, MAC_ADDRESS_SQUEEZE]
 
 peripherals = []
 
@@ -95,17 +95,17 @@ def raise_up():
             service = peripheral.getServiceByUUID(service_uuid)
             hal_val_char = service.getCharacteristics(value_a_uuid)[0]
             hal_val = int.from_bytes(hal_val_char.read(), byteorder='little')
-            # print(f"Raise up: Current hallucination rate: {hal_val}")
+            print(f"Raise up: Current hallucination rate: {hal_val}")
             new_hal_val = hal_val + USE_SCORE if hal_val < 100 else 100
             hal_val_char.write(new_hal_val.to_bytes(4, byteorder='little'), withResponse=True)
-            # print(f"Raise up: New hallucination rate written to characteristic: {new_hal_val}")
+            print(f"Raise up: New hallucination rate written to characteristic: {new_hal_val}")
             time.sleep(0.2)
             updated_hal_val = int.from_bytes(hal_val_char.read(), byteorder='little')
             bot.hallucination_rate = updated_hal_val
-            # print(f"Raise up: Read back updated hallucination rate: {updated_hal_val}")
+            print(f"Raise up: Read back updated hallucination rate: {updated_hal_val}")
         except btle.BTLEException as e:
             print(f"BLE error: {e}")
-            connect_to_peripheral()
+            # connect_to_peripheral()
 
 def rotate_monitor():
     global peripherals, bot
@@ -125,14 +125,12 @@ def rotate_monitor():
                         rotate_servo()
                 elif char.uuid == string_uuid:
                     data = char.read().decode('utf-8')
-                    state.save_state(bot, True, data)
-
-            service = peripheral.getServiceByUUID(service_uuid)
-            hal_val_char = service.getCharacteristics(value_a_uuid)[0]
-            hal_val = int.from_bytes(hal_val_char.read(), byteorder='little')
+                    if data != "monitor":
+                        print("ohhhhhh")
+                        state.save_state(bot, True, data)
         except btle.BTLEException as e:
             print(f"BLE error: {e}")
-            connect_to_peripheral()
+            # connect_to_peripheral()
 
 def connect_to_peripheral():
     global peripherals

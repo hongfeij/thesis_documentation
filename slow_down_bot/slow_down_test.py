@@ -11,7 +11,7 @@ from gpiozero import Button, AngularServo
 from gpiozero.pins.pigpio import PiGPIOFactory
 from signal import pause
 
-gpiozero.Device.pin_factory = PiGPIOFactory()
+factory = PiGPIOFactory()
 
 USE_SCORE = 10
 
