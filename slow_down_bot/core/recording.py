@@ -2,19 +2,21 @@
 import alsaaudio
 import wave
 from openai import OpenAI
-import pygame
 from pathlib import Path
 import numpy as np
 import os
+import board
+import neopixel
 
-# import RPi.GPIO as GPIO
-
-# GPIO.setwarnings(False)
-# GPIO.setmode(GPIO.BCM)
 OUTPUT_FILENAME = "recorded_audio.wav"
 RESPONSE_FILENAME = "response.wav"
-# LED_PIN = 17
-# GPIO.setup(LED_PIN,GPIO.OUT)
+
+pixel_pin = board.D10
+num_pixels = 1
+
+pixels = neopixel.NeoPixel(
+    pixel_pin, num_pixels, brightness=0.2, auto_write=False
+)
 
 client = OpenAI()
 
@@ -26,6 +28,8 @@ CHUNK_SIZE = 512
 RECORDING_LENGTH = 5
 
 def record_audio():
+    pixels.fill((255, 255, 255))
+    pixels.show()
     recorder = alsaaudio.PCM(type=alsaaudio.PCM_CAPTURE, mode=alsaaudio.PCM_NORMAL, 
                              rate=RATE, channels=CHANNELS, format=FORMAT, 
                              periodsize=CHUNK_SIZE, device="plughw:CARD=seeed2micvoicec,DEV=0")
@@ -40,6 +44,9 @@ def record_audio():
         # print(f"Data: {data[:10]}")
 
     recorder.close()
+
+    pixels.fill((0, 0, 0))
+    pixels.show()
 
     with wave.open(OUTPUT_FILENAME, 'wb') as wave_file:
         wave_file.setnchannels(CHANNELS)
@@ -65,6 +72,9 @@ def play_text(text):
     speech_file_path = str(speech_file_path) if isinstance(speech_file_path, Path) else speech_file_path
 
     try:
+        pixels.fill((255, 255, 255))
+        pixels.show()
+
         with wave.open(speech_file_path, 'rb') as wf:
             player = alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK, mode=alsaaudio.PCM_NORMAL, 
                                 rate=RATE, channels=CHANNELS, format=FORMAT, 
@@ -76,10 +86,12 @@ def play_text(text):
                 data = wf.readframes(CHUNK_SIZE)
 
             player.close()
+        pixels.fill((0, 0, 0))
+        pixels.show()
 
     except Exception as e:
         print(f"Error during playback: {e}")
 
-    # finally:
-    #     os.remove(speech_file_path)
-    #     os.remove(OUTPUT_FILENAME)
+    finally:
+        os.remove(speech_file_path)
+        os.remove(OUTPUT_FILENAME)

@@ -10,13 +10,24 @@ import gpiozero
 from gpiozero import Button, AngularServo
 from gpiozero.pins.pigpio import PiGPIOFactory
 from signal import pause
+import board
+import neopixel
+
+pixel_pin = board.D10
+num_pixels = 1
+
+pixels = neopixel.NeoPixel(
+    pixel_pin, num_pixels, brightness=0.2,  auto_write=False
+)
+
 
 USE_SCORE = 10
 
 RECORD_BUTTON_PIN = 22
 SERVO_PIN = 27
 servo_factory = PiGPIOFactory()
-servo = AngularServo(SERVO_PIN, min_angle=-87, max_angle=87, pin_factory=servo_factory)
+servo = AngularServo(SERVO_PIN, min_angle=-87, max_angle=87)
+# , pin_factory=servo_factory
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 if OPENAI_API_KEY is None:
@@ -29,8 +40,8 @@ MAC_ADDRESS_SQUEEZE = "0F:BD:FB:16:FC:21"
 MAC_ADDRESS_SMASH  = "6C:85:F7:B1:65:2E"
 MAC_ADDRESS_WHISPER = "A4:4B:6C:1E:91:A8"
 MAC_ADDRESS_TICKLE = "62:2F:58:C9:02:47"
-mac_addresses = [MAC_ADDRESS_TICKLE, MAC_ADDRESS_WHISPER, MAC_ADDRESS_SMASH, MAC_ADDRESS_SQUEEZE]
-
+# mac_addresses = [MAC_ADDRESS_TICKLE, MAC_ADDRESS_WHISPER, MAC_ADDRESS_SMASH, MAC_ADDRESS_SQUEEZE]
+mac_addresses = [MAC_ADDRESS_WHISPER]
 peripherals = []
 
 service_uuid = "12345678-1234-5678-1234-56789abcdef0"
@@ -110,6 +121,9 @@ def raise_up():
 def rotate_monitor():
     global peripherals, bot
     prev_hal_val = bot.hallucination_rate
+
+    # pixels.fill((0, 0, 0))
+    # pixels.show()
 
     for peripheral in peripherals:
         try:
