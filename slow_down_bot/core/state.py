@@ -11,7 +11,6 @@ def save_state(bot_instance, isAction, action, filepath="state.json"):
 
 
     if not isAction:
-        print("save action")
         new_entry = {
             "id": len(states) + 1,
             "last_user_input": bot_instance.last_user_input,
