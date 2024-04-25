@@ -120,8 +120,8 @@ def raise_up():
 
 def rotate_monitor():
     global peripherals, bot
+    min_hal = 101
     prev_hal_val = bot.hallucination_rate
-    min_hal = 200
 
     # pixels.fill((0, 0, 0))
     # pixels.show()
@@ -135,10 +135,6 @@ def rotate_monitor():
                 if char.uuid == value_a_uuid:
                     hal_val = int.from_bytes(char.read(), byteorder='little')
                     min_hal = min(min_hal, hal_val)
-                    bot.hallucination_rate = min_hal
-                    if prev_hal_val != bot.hallucination_rate:
-                        print(f"Monitor: current hallucination rate: {bot.hallucination_rate}")
-                        rotate_servo()
                 elif char.uuid == string_uuid:
                     data = char.read().decode('utf-8')
                     if data != "monitor":
@@ -146,6 +142,11 @@ def rotate_monitor():
         except btle.BTLEException as e:
             print(f"BLE error: {e}")
             # connect_to_peripheral()
+
+    bot.hallucination_rate = min_hal
+    print(f"Monitor: current hallucination rate: {bot.hallucination_rate}")
+    if prev_hal_val != bot.hallucination_rate:
+        rotate_servo()
 
 def connect_to_peripheral():
     global peripherals
