@@ -3,7 +3,7 @@ import time
 from time import sleep
 
 # Setup
-SERVO_PIN = 17  # Change this to the GPIO pin you are using
+SERVO_PIN = 27  # Change this to the GPIO pin you are using
 GPIO.setmode(GPIO.BCM)  # Use Broadcom pin-numbering scheme
 GPIO.setup(SERVO_PIN, GPIO.OUT)
 

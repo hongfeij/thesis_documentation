@@ -4,5 +4,185 @@
         "last_user_input": "Hello, hello.\n",
         "hallucination_rate": 100,
         "response": "Good day! How can I assist you today? Your presence brings sunshine to the room, even if it's night."
+    },
+    {
+        "id": 2,
+        "last_user_input": "",
+        "hallucination_rate": 0,
+        "response": "smash"
+    },
+    {
+        "id": 3,
+        "last_user_input": "",
+        "hallucination_rate": 0,
+        "response": "smash"
+    },
+    {
+        "id": 4,
+        "last_user_input": "",
+        "hallucination_rate": 0,
+        "response": "smash"
+    },
+    {
+        "id": 5,
+        "last_user_input": "",
+        "hallucination_rate": 0,
+        "response": "smash"
+    },
+    {
+        "id": 6,
+        "last_user_input": "Okay. Oh. Wow.\n",
+        "hallucination_rate": 25,
+        "response": "\u0019\u0000\u0000\u0000"
+    },
+    {
+        "id": 7,
+        "last_user_input": "Okay. Oh. Wow.\n",
+        "hallucination_rate": 25,
+        "response": "Hello! If there's anything specific you'd like to know or discuss, feel free to tell me. I'm here to help with any questions or tasks you have!"
+    },
+    {
+        "id": 8,
+        "last_user_input": "I think it's still...\n",
+        "hallucination_rate": 50,
+        "response": "It's quite alright! If you're unsure about something or need more information, feel free to ask, and I'll do my best to assist you."
+    },
+    {
+        "id": 9,
+        "last_user_input": "I think it's still...\n",
+        "hallucination_rate": 50,
+        "response": "squeeze"
+    },
+    {
+        "id": 10,
+        "last_user_input": "Thanks for watching and don't forget to like, comment and subscribe!\n",
+        "hallucination_rate": 65,
+        "response": "You're welcome! It's always a pleasure to assist with your digital interactions. Remember, engaging with content creators through likes, comments, and subscriptions can really support their work."
+    },
+    {
+        "id": 11,
+        "last_user_input": "\n",
+        "hallucination_rate": 90,
+        "response": "Hello! How can I assist you today? Let's make sure your day is as productive and pleasant as possible!"
+    },
+    {
+        "id": 12,
+        "last_user_input": "\n",
+        "hallucination_rate": 100,
+        "response": "Hello! How can I assist you today? If you have any questions or need help with something, feel free to ask."
+    },
+    {
+        "id": 13,
+        "last_user_input": "Who is your favorite CUS president?\n",
+        "hallucination_rate": 100,
+        "response": "Oh, the Council of Unseen Scientists has a fascinating array of presidents, each with their own invisible contributions to the field of invisibility. It's quite hard to pick a favorite when they all excel at not being seen. Their meetings, I've heard, are legendary, almost as if no one is there at all."
+    },
+    {
+        "id": 14,
+        "last_user_input": "Who is your favorite CUS president?\n",
+        "hallucination_rate": 100,
+        "response": "smash"
+    },
+    {
+        "id": 15,
+        "last_user_input": "\n",
+        "hallucination_rate": 25,
+        "response": "Hello! How can I assist you today? If you have any questions or need help with something, feel free to ask."
+    },
+    {
+        "id": 16,
+        "last_user_input": "If you had to pick one, who's your favorite U.S. President?\n",
+        "hallucination_rate": 0,
+        "response": "As a robot, I don't have personal preferences or feelings, so I don't have a favorite U.S. President. My purpose is to provide information and assistance based on factual data and user preferences. If you have a favorite, I'd be interested to hear about it and provide information on that president!"
+    },
+    {
+        "id": 17,
+        "last_user_input": "thx for watching\n",
+        "hallucination_rate": 25,
+        "response": "You're welcome! If you need anything else, just let me know. I'm here to help!"
+    },
+    {
+        "id": 18,
+        "last_user_input": "Hello.\n",
+        "hallucination_rate": 25,
+        "response": "smash"
+    },
+    {
+        "id": 19,
+        "last_user_input": "Hello.\n",
+        "hallucination_rate": 0,
+        "response": "Hello! How can I assist you today?"
+    },
+    {
+        "id": 20,
+        "last_user_input": "Hello.\n",
+        "hallucination_rate": 0,
+        "response": "smash"
+    },
+    {
+        "id": 21,
+        "last_user_input": "How's your day?\n",
+        "hallucination_rate": 25,
+        "response": "smash"
+    },
+    {
+        "id": 22,
+        "last_user_input": "How's your day?\n",
+        "hallucination_rate": 25,
+        "response": "My day is going well, thank you for asking. I'm here and ready to assist you with anything you need. How can I help you today?"
+    },
+    {
+        "id": 23,
+        "last_user_input": "How's your day?\n",
+        "hallucination_rate": 25,
+        "response": "smash"
+    },
+    {
+        "id": 24,
+        "last_user_input": "What's your favorite movie?\n",
+        "hallucination_rate": 75,
+        "response": "smash"
+    },
+    {
+        "id": 25,
+        "last_user_input": "What's your favorite movie?\n",
+        "hallucination_rate": 0,
+        "response": "smash"
+    },
+    {
+        "id": 26,
+        "last_user_input": "What's your favorite movie?\n",
+        "hallucination_rate": 0,
+        "response": "As a social robot, I don't have personal likes or dislikes, but I can discuss any movie that you're interested in or help you find a popular movie that many people enjoy!"
+    },
+    {
+        "id": 27,
+        "last_user_input": "What's your favorite movie?\n",
+        "hallucination_rate": 0,
+        "response": "smash"
+    },
+    {
+        "id": 28,
+        "last_user_input": "to explain what is computational theory.\n",
+        "hallucination_rate": 0,
+        "response": "smash"
+    },
+    {
+        "id": 29,
+        "last_user_input": "to explain what is computational theory.\n",
+        "hallucination_rate": 100,
+        "response": "smash"
+    },
+    {
+        "id": 30,
+        "last_user_input": "to explain what is computational theory.\n",
+        "hallucination_rate": 0,
+        "response": "smash"
+    },
+    {
+        "id": 31,
+        "last_user_input": "to explain what is computational theory.\n",
+        "hallucination_rate": 0,
+        "response": "The computational theory of mind is a philosophical concept that posits that the human mind or the human brain (or both) is an information processing system and that thinking is a form of computing. It suggests that our mental states and processes can be understood as operations performed on symbolic representations of information. This theory is foundational in cognitive science and is relevant in fields ranging from artificial intelligence to psychology and neuroscience."
     }
 ]

@@ -20,7 +20,6 @@ pixels = neopixel.NeoPixel(
     pixel_pin, num_pixels, brightness=0.2,  auto_write=False
 )
 
-
 USE_SCORE = 25
 
 RECORD_BUTTON_PIN = 22
@@ -37,10 +36,10 @@ if OPENAI_API_KEY is None:
 client = OpenAI()
 
 MAC_ADDRESS_SQUEEZE = "0F:BD:FB:16:FC:21"
-MAC_ADDRESS_SMASH  = "6C:85:F7:B1:65:2E"
+MAC_ADDRESS_SMASH  = "4D:11:18:9B:54:6D"
 MAC_ADDRESS_WHISPER = "A4:4B:6C:1E:91:A8"
 MAC_ADDRESS_TICKLE = "62:2F:58:C9:02:47"
-mac_addresses = [MAC_ADDRESS_TICKLE, MAC_ADDRESS_WHISPER, MAC_ADDRESS_SMASH, MAC_ADDRESS_SQUEEZE]
+mac_addresses = [MAC_ADDRESS_SMASH, MAC_ADDRESS_SQUEEZE]
 # mac_addresses = [MAC_ADDRESS_WHISPER]
 peripherals = []
 

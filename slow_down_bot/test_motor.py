@@ -30,6 +30,7 @@ servo = AngularServo(27, min_angle=0, max_angle=180, min_pulse_width=0.0005, max
 try:
     while True:
         servo.angle = 0
+        print("aaaaa")
         sleep(1)
         servo.angle = 180
         sleep(1)
